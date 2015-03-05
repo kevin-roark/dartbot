@@ -2,6 +2,8 @@
 import cv2 as cv
 import frame_convert
 import freenect
+import numpy
+import os
 
 def match_method_prefers_min(match_method):
     return match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED
@@ -24,22 +26,26 @@ cv.namedWindow(kinect_window, cv.WINDOW_AUTOSIZE)
 cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
 
 # load the dart template
-dart_template = cv.imread('./dartboard_template.png')
+template_file = os.path.dirname(os.path.realpath(__file__)) + '/dartboard_template.png'
+dart_template = cv.imread(template_file)
 
 # get rgb camera info
 #rgb_info = rgb_camera_info()
-#rgb_width = rgb_info.width
-#rgb_height = rgb_info.height
+rgb_width = 640 # known constant dog / rgb_info.width
+rgb_height = 480 # known constant dog / rgb_info.height
 
 # get the rgb image from kinect
 rgb_image = get_video()
 
+# convert rbg image to numpy matrix
+rgb_mat = numpy.asarray(rgb_image[:,:])
+
 # copy rgb image to show in the window later
-display_image = rgb_image.clone()
+display_image = rgb_mat # do i need to clone?
 
 # run the template matching
 matching_method = cv.TM_SQDIFF_NORMED
-match_result = cv.matchTemplate(rgb_image, dart_template, matching_method)
+match_result = cv.matchTemplate(rgb_mat, dart_template, matching_method)
 
 # normalize matched result
 normalized_match_result = cv.normalize(match_result, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=-1)
@@ -50,10 +56,14 @@ min_val, max_val, min_loc, max_loc = cv.minMaxLoc(normalized_match_result)
 match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
 
 # draw rectangle around the match area
-match_point = cv.Point(match_loc.x + dart_template.cols, match_loc.y + dart_template.rows)
-cv.rectangle(display_image, match_loc, match_point, cv.Scalar(0), 2, 8, 0)
-cv.rectangle(normalized_match_result, match_loc, match_point, cv.Scalar(0), 2, 8, 0)
+match_point = (match_loc[0] + dart_template.shape[0], match_loc[1] + dart_template.shape[1]) # outside of python use cv.Point, rows, and cols
+cv.rectangle(display_image, match_loc, match_point, 0, 2, 8, 0)
+cv.rectangle(normalized_match_result, match_loc, match_point, 0, 2, 8, 0)
 
 # display results in window
 cv.imshow(kinect_window, display_image)
 cv.imshow(result_window, normalized_match_result)
+
+while 1:
+  if cv.waitKey(10) == 27:
+        break
