@@ -4,6 +4,29 @@ import frame_convert
 import freenect
 import numpy
 import os
+import math
+
+HORIZONTAL_VIEW_ANGLE = 57.0
+VERTICAL_VIEW_ANGLE = 43.0
+RGB_WIDTH = 640
+RGB_HEIGHT = 480
+FOCAL_LENGTH_X = RGB_WIDTH / (2 * math.tan(math.radians(HORIZONTAL_VIEW_ANGLE / 2)))
+FOCAL_LENGTH_Y = RGB_HEIGHT / (2 * math.tan(math.radians(VERTICAL_VIEW_ANGLE / 2)))
+
+def real_world_position(screen_point):
+    adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
+    adjusted_screen_y = screen_point[1] - RGB_HEIGHT / 2 # center y should be 0
+
+    z_world = get_z_world_depth()[screen_point[0]][screen_point[1]]
+
+    x_world = z_world * adjusted_screen_x / FOCAL_LENGTH_X
+    y_world = z_world * adjusted_screen_y / FOCAL_LENGTH_Y
+    return (x_world, y_world, z_world)
+
+def get_z_world_depth():
+    depth_mat = freenect.sync_get_depth()[0]
+    print depth_mat # TODO: this function
+    return depth_mat
 
 def match_method_prefers_min(match_method):
     return match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED
@@ -28,11 +51,6 @@ cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
 # load the dart template
 template_file = os.path.dirname(os.path.realpath(__file__)) + '/dartboard_template.png'
 dart_template = cv.imread(template_file)
-
-# get rgb camera info
-#rgb_info = rgb_camera_info()
-rgb_width = 640 # known constant dog / rgb_info.width
-rgb_height = 480 # known constant dog / rgb_info.height
 
 # get the rgb image from kinect
 rgb_image = get_video()
@@ -59,6 +77,10 @@ match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
 match_point = (match_loc[0] + dart_template.shape[0], match_loc[1] + dart_template.shape[1]) # outside of python use cv.Point, rows, and cols
 cv.rectangle(display_image, match_loc, match_point, 0, 2, 8, 0)
 cv.rectangle(normalized_match_result, match_loc, match_point, 0, 2, 8, 0)
+
+# get real world position of match_loc for fun
+real_world_match_loc = real_world_position(match_loc)
+print real_world_match_loc
 
 # display results in window
 cv.imshow(kinect_window, display_image)
