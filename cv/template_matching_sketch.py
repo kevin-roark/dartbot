@@ -25,8 +25,21 @@ def real_world_position(screen_point):
 
 def get_z_world_depth():
     depth_mat = freenect.sync_get_depth()[0]
-    print depth_mat # TODO: this function
-    return depth_mat
+    rows = len(depth_mat)
+    columns = len(depth_mat[0])
+
+    world_depth_mat = [None] * rows
+
+    for r in range(rows):
+        world_depth_row = [None] * columns
+        for c in range(columns):
+            raw_disparity = depth_mat[r][c]
+            metered_depth = 0.1236 * math.tan(raw_disparity / 2842.5 + 1.1863) # http://openkinect.org/wiki/Imaging_Information#Depth_Camera
+            world_depth_row[c] = metered_depth
+
+        world_depth_mat[r] = world_depth_row
+
+    return world_depth_mat
 
 def match_method_prefers_min(match_method):
     return match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED
@@ -75,12 +88,21 @@ match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
 
 # draw rectangle around the match area
 match_point = (match_loc[0] + dart_template.shape[0], match_loc[1] + dart_template.shape[1]) # outside of python use cv.Point, rows, and cols
+
 cv.rectangle(display_image, match_loc, match_point, 0, 2, 8, 0)
 cv.rectangle(normalized_match_result, match_loc, match_point, 0, 2, 8, 0)
+
+print match_point
 
 # get real world position of match_loc for fun
 real_world_match_loc = real_world_position(match_loc)
 print real_world_match_loc
+
+test_point = (int(RGB_WIDTH / 2.5), int(RGB_HEIGHT / 2.5))
+print test_point
+print real_world_position(test_point)
+
+cv.rectangle(display_image, (test_point[0] - 10, test_point[1] - 10), (test_point[0] + 10, test_point[1] + 10), 0, 2, 8, 0)
 
 # display results in window
 cv.imshow(kinect_window, display_image)
