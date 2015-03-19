@@ -3,25 +3,32 @@ import cv2 as cv
 import frame_convert
 import freenect
 import numpy
-import os
-import math
+import os, math, sys, time
 
-HORIZONTAL_VIEW_ANGLE = 57.0
-VERTICAL_VIEW_ANGLE = 43.0
+HORIZONTAL_VIEW_ANGLE = 58.0
+VERTICAL_VIEW_ANGLE = 45.0
 RGB_WIDTH = 640
 RGB_HEIGHT = 480
 FOCAL_LENGTH_X = RGB_WIDTH / (2 * math.tan(math.radians(HORIZONTAL_VIEW_ANGLE / 2)))
 FOCAL_LENGTH_Y = RGB_HEIGHT / (2 * math.tan(math.radians(VERTICAL_VIEW_ANGLE / 2)))
+DART_TEMPLATE_FILE = os.path.dirname(os.path.realpath(__file__)) + '/dartboard_template.png'
+DARTBOARD_TEMPLATE = cv.imread(DART_TEMPLATE_FILE)
+
+def reset_kinect():
+    freenect.sync_get_depth()
+    freenect.sync_get_video()
 
 def real_world_position(screen_point):
     adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
     adjusted_screen_y = screen_point[1] - RGB_HEIGHT / 2 # center y should be 0
 
-    z_world = get_z_world_depth()[screen_point[0]][screen_point[1]]
+    z_world_struct = get_z_world_depth()[screen_point[0]][screen_point[1]]
+    z_world = z_world_struct[1]
 
     x_world = z_world * adjusted_screen_x / FOCAL_LENGTH_X
     y_world = z_world * adjusted_screen_y / FOCAL_LENGTH_Y
-    return (x_world, y_world, z_world)
+    pos = (x_world, y_world, z_world)
+    return (pos, z_world_struct)
 
 def get_z_world_depth():
     depth_mat = freenect.sync_get_depth()[0]
@@ -35,14 +42,15 @@ def get_z_world_depth():
         for c in range(columns):
             raw_disparity = depth_mat[r][c]
             metered_depth = 0.1236 * math.tan(raw_disparity / 2842.5 + 1.1863) # http://openkinect.org/wiki/Imaging_Information#Depth_Camera
-            world_depth_row[c] = metered_depth
+            #metered_depth = 100 / (-0.00307 * raw_disparity + 3.33)
+            world_depth_row[c] = (raw_disparity, metered_depth)
 
         world_depth_mat[r] = world_depth_row
 
     return world_depth_mat
 
 def match_method_prefers_min(match_method):
-    return match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED
+    return (match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED)
 
 def get_depth():
     return frame_convert.pretty_depth_cv(freenect.sync_get_depth()[0])
@@ -53,61 +61,76 @@ def get_video():
     # rgb_image = cv.ctvColor(bayered_image, cv.CV_BAYERGR2RGB)
 
     # in straight python freenect:
-    return frame_convert.video_cv(freenect.sync_get_video()[0])
+    numpy_vid = freenect.sync_get_video()[0]
+    return frame_convert.video_cv(numpy_vid)
 
-# UI windows
-kinect_window = 'kinect image'
-result_window = 'result image'
-cv.namedWindow(kinect_window, cv.WINDOW_AUTOSIZE)
-cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
+def match_dartboard(draw=False, test_point=None):
+    # get the rgb image from kinect
+    rgb_image = get_video()
 
-# load the dart template
-template_file = os.path.dirname(os.path.realpath(__file__)) + '/dartboard_template.png'
-dart_template = cv.imread(template_file)
+    # convert rbg image to numpy matrix
+    rgb_mat = numpy.asarray(rgb_image[:,:])
 
-# get the rgb image from kinect
-rgb_image = get_video()
+    # copy rgb image to show in the window later
+    display_image = rgb_mat # do i need to clone?
 
-# convert rbg image to numpy matrix
-rgb_mat = numpy.asarray(rgb_image[:,:])
+    # run the template matching
+    matching_method = cv.TM_SQDIFF
+    match_result = cv.matchTemplate(rgb_mat, DARTBOARD_TEMPLATE, matching_method)
 
-# copy rgb image to show in the window later
-display_image = rgb_mat # do i need to clone?
+    # normalize matched result
+    normalized_match_result = cv.normalize(match_result, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=-1)
 
-# run the template matching
-matching_method = cv.TM_SQDIFF_NORMED
-match_result = cv.matchTemplate(rgb_mat, dart_template, matching_method)
+    # get that tasty min and max matches (localize the best result)
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(normalized_match_result)
 
-# normalize matched result
-normalized_match_result = cv.normalize(match_result, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=-1)
+    match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
 
-# get that tasty min and max matches (localize the best result)
-min_val, max_val, min_loc, max_loc = cv.minMaxLoc(normalized_match_result)
+    template = DARTBOARD_TEMPLATE
+    match_center = (match_loc[0] + template.shape[0] / 2, match_loc[1] + template.shape[1] / 2)
 
-match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
+    match_corner = (match_loc[0] + template.shape[0], match_loc[1] + template.shape[1])
 
-# draw rectangle around the match area
-match_point = (match_loc[0] + dart_template.shape[0], match_loc[1] + dart_template.shape[1]) # outside of python use cv.Point, rows, and cols
+    cv.circle(display_image, match_center, 10, (0, 0, 255), 2, 4, 0)
+    cv.rectangle(display_image, match_loc, match_corner, 0, 2, 8, 0)
+    cv.rectangle(normalized_match_result, match_loc, match_corner, 0, 2, 8, 0)
 
-cv.rectangle(display_image, match_loc, match_point, 0, 2, 8, 0)
-cv.rectangle(normalized_match_result, match_loc, match_point, 0, 2, 8, 0)
+    # get real world position of match_loc for fun
+    match_center_pos = real_world_position(match_center)
 
-print match_point
+    print 'match point: ', match_center
+    print '3d match space: ', match_center_pos[0]
+    print 'z_info: ', match_center_pos[1]
 
-# get real world position of match_loc for fun
-real_world_match_loc = real_world_position(match_loc)
-print real_world_match_loc
+    if test_point:  
+        print 'test point / real world test loc:'
+        print test_point
+        print real_world_position(test_point)
+        cv.circle(display_image, test_point, 8, (255, 255, 0), 2, 8, 0)
 
-test_point = (int(RGB_WIDTH / 2.5), int(RGB_HEIGHT / 2.5))
-print test_point
-print real_world_position(test_point)
+    if draw:
+        # display results in window
+        kinect_window = 'kinect image'
+        result_window = 'template matching image'
+        cv.namedWindow(kinect_window, cv.WINDOW_AUTOSIZE)
+        cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
+        cv.imshow(kinect_window, display_image)
+        cv.imshow(result_window, normalized_match_result)
 
-cv.rectangle(display_image, (test_point[0] - 10, test_point[1] - 10), (test_point[0] + 10, test_point[1] + 10), 0, 2, 8, 0)
+def main():
+    reset_kinect()
 
-# display results in window
-cv.imshow(kinect_window, display_image)
-cv.imshow(result_window, normalized_match_result)
+    runs = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 
-while 1:
-  if cv.waitKey(10) == 27:
-        break
+    for i in range(runs):
+        print '**** test run ', i, ' ****'
+        match_dartboard()
+        print ''
+
+if __name__ == '__main__':
+    main()
+
+    while 1:
+        if cv.waitKey(10) == 27:
+            break
+
