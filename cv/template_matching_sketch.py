@@ -3,7 +3,7 @@ import cv2 as cv
 import frame_convert
 import freenect
 import numpy
-import os, math, sys, time
+import os, math, sys, time, random
 
 HORIZONTAL_VIEW_ANGLE = 58.0
 VERTICAL_VIEW_ANGLE = 45.0
@@ -64,6 +64,34 @@ def get_video():
     numpy_vid = freenect.sync_get_video()[0]
     return frame_convert.video_cv(numpy_vid)
 
+class MatchTemplateResult():
+    def __init__(self, corner1, center, corner2, pos, normalized_image):
+        self.corner1 = corner1
+        self.center = center
+        self.corner2 = corner2
+        self.pos = pos
+        self.normalized_image = normalized_image
+
+def match_template(image, template, matching_method=cv.TM_SQDIFF):
+    # run the template matching
+    match_result = cv.matchTemplate(image, template, matching_method)
+
+    # normalize matched result
+    normalized_match_result = cv.normalize(match_result, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=-1)
+
+    # get that tasty min and max matches (localize the best result)
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(normalized_match_result)
+    match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
+
+    # calculate helpful match info
+    match_center = (match_loc[0] + template.shape[0] / 2, match_loc[1] + template.shape[1] / 2)
+    match_corner = (match_loc[0] + template.shape[0], match_loc[1] + template.shape[1])
+
+    # get real world position of match_loc for fun
+    match_center_pos = real_world_position(match_center)
+
+    return MatchTemplateResult(match_loc, match_center, match_corner, match_center_pos, normalized_match_result)
+
 def match_dartboard(draw=False, test_point=None):
     # get the rgb image from kinect
     rgb_image = get_video()
@@ -71,51 +99,36 @@ def match_dartboard(draw=False, test_point=None):
     # convert rbg image to numpy matrix
     rgb_mat = numpy.asarray(rgb_image[:,:])
 
-    # copy rgb image to show in the window later
-    display_image = rgb_mat # do i need to clone?
-
     # run the template matching
     matching_method = cv.TM_SQDIFF
-    match_result = cv.matchTemplate(rgb_mat, DARTBOARD_TEMPLATE, matching_method)
+    match_result = match_template(rgb_mat, DARTBOARD_TEMPLATE, matching_method)
 
-    # normalize matched result
-    normalized_match_result = cv.normalize(match_result, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=-1)
+    print 'matching method: ', matching_method
+    print 'match point: ', match_result.center
+    print '3d match space: ', match_result.pos[0]
+    print 'z_info: ', match_result.pos[1]
 
-    # get that tasty min and max matches (localize the best result)
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(normalized_match_result)
-
-    match_loc = min_loc if match_method_prefers_min(matching_method) else max_loc
-
-    template = DARTBOARD_TEMPLATE
-    match_center = (match_loc[0] + template.shape[0] / 2, match_loc[1] + template.shape[1] / 2)
-
-    match_corner = (match_loc[0] + template.shape[0], match_loc[1] + template.shape[1])
-
-    cv.circle(display_image, match_center, 10, (0, 0, 255), 2, 4, 0)
-    cv.rectangle(display_image, match_loc, match_corner, 0, 2, 8, 0)
-    cv.rectangle(normalized_match_result, match_loc, match_corner, 0, 2, 8, 0)
-
-    # get real world position of match_loc for fun
-    match_center_pos = real_world_position(match_center)
-
-    print 'match point: ', match_center
-    print '3d match space: ', match_center_pos[0]
-    print 'z_info: ', match_center_pos[1]
-
+    display_image = rgb_mat
     if test_point:  
         print 'test point / real world test loc:'
         print test_point
         print real_world_position(test_point)
-        cv.circle(display_image, test_point, 8, (255, 255, 0), 2, 8, 0)
+
+        if draw:
+            cv.circle(display_image, test_point, 8, (255, 255, 0), 2, 8, 0)
 
     if draw:
+        cv.circle(display_image, match_result.center, 10, (0, 0, 255), 2, 4, 0)
+        cv.rectangle(display_image, match_result.corner1, match_result.corner2, 0, 2, 8, 0)
+      
         # display results in window
-        kinect_window = 'kinect image'
-        result_window = 'template matching image'
+        r = str(random.randint(1000))
+        kinect_window = 'kinect image ' + r
+        result_window = 'template matching image ' + r
         cv.namedWindow(kinect_window, cv.WINDOW_AUTOSIZE)
         cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
         cv.imshow(kinect_window, display_image)
-        cv.imshow(result_window, normalized_match_result)
+        cv.imshow(result_window, match_result.normalized_image)
 
 def main():
     reset_kinect()
