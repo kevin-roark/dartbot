@@ -11,8 +11,34 @@ RGB_WIDTH = 640
 RGB_HEIGHT = 480
 FOCAL_LENGTH_X = RGB_WIDTH / (2 * math.tan(math.radians(HORIZONTAL_VIEW_ANGLE / 2)))
 FOCAL_LENGTH_Y = RGB_HEIGHT / (2 * math.tan(math.radians(VERTICAL_VIEW_ANGLE / 2)))
+
 DART_TEMPLATE_FILE = os.path.dirname(os.path.realpath(__file__)) + '/dartboard_template.png'
 DARTBOARD_TEMPLATE = cv.imread(DART_TEMPLATE_FILE)
+
+MATCHING_METHODS = [
+    cv.TM_SQDIFF,
+    cv.TM_SQDIFF_NORMED,
+    cv.TM_CCORR,
+    cv.TM_CCORR_NORMED,
+    cv.TM_CCOEFF,
+    cv.TM_CCOEFF_NORMED
+]
+
+def matching_method_name(matching_method):
+    if matching_method == cv.TM_SQDIFF:
+        return 'squared diff'
+    elif matching_method == cv.TM_SQDIFF_NORMED:
+        return 'normalized squared diff'
+    elif matching_method == cv.TM_CCORR:
+        return 'correlation'
+    elif matching_method == cv.TM_CCORR_NORMED:
+        return 'normalized correlation'
+    elif matching_method == cv.TM_CCOEFF:
+        return 'correlation coefficient'
+    elif matching_method == cv.TM_CCOEFF_NORMED:
+        return 'normalized correlation coefficient'
+    else:
+        return 'UNKNOWN MATCHING_METHOD'
 
 def reset_kinect():
     freenect.sync_get_depth()
@@ -92,7 +118,7 @@ def match_template(image, template, matching_method=cv.TM_SQDIFF):
 
     return MatchTemplateResult(match_loc, match_center, match_corner, match_center_pos, normalized_match_result)
 
-def match_dartboard(draw=False, test_point=None):
+def match_dartboard(matching_method=cv.TM_SQDIFF, draw=False, test_point=None):
     # get the rgb image from kinect
     rgb_image = get_video()
 
@@ -100,13 +126,12 @@ def match_dartboard(draw=False, test_point=None):
     rgb_mat = numpy.asarray(rgb_image[:,:])
 
     # run the template matching
-    matching_method = cv.TM_SQDIFF
     match_result = match_template(rgb_mat, DARTBOARD_TEMPLATE, matching_method)
 
-    print 'matching method: ', matching_method
-    print 'match point: ', match_result.center
-    print '3d match space: ', match_result.pos[0]
-    print 'z_info: ', match_result.pos[1]
+    print 'matching method:', matching_method, '(', matching_method_name(matching_method), ')'
+    print 'match point:', match_result.center
+    print '3d match space:', match_result.pos[0]
+    print 'z_info:', match_result.pos[1]
 
     display_image = rgb_mat
     if test_point:  
@@ -133,11 +158,13 @@ def match_dartboard(draw=False, test_point=None):
 def main():
     reset_kinect()
 
-    runs = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    
+    runs = int(sys.argv[1]) if len(sys.argv) > 1 else len(MATCHING_METHODS)
 
     for i in range(runs):
         print '**** test run ', i, ' ****'
-        match_dartboard()
+        method = MATCHING_METHODS[i % len(MATCHING_METHODS)] 
+        match_dartboard(matching_method=method)
         print ''
 
 if __name__ == '__main__':
