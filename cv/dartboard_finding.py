@@ -208,7 +208,7 @@ def get_video():
 #### SCRIPT BEHAVIOR
 ##########
 
-def template_matching_test():
+def template_matching_test(args):
     methods = len(MATCHING_METHODS)
     for i in range(methods):
         print '**** test run ', i, ' ****'
@@ -217,17 +217,31 @@ def template_matching_test():
         matcher.run()
         print ''
 
+def find_bullseye_with_confirmation(args):
+    bullseye_pos = None
+
+    while not bullseye_pos:
+        finder = TemplateMatcher(draw=True)
+        finder.run()
+
+        user_confirmation = input('Does the reported bullseye position look good?')
+        if user_confirmation == 'lgtm':
+            bullseye_pos = finder.result.center
+            print 'sick!!!!!'
+
+    # TODO: report bullseye_pos to robot
 
 def main():
     reset_kinect()
 
     functions = {
-        'template_test': template_matching_test
+        'template_test': template_matching_test,
+        'find': find_bullseye_with_confirmation
     }
 
     fn = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in functions else 'template_test'
 
-    functions[fn]()
+    functions[fn](sys.argv[2:])
 
 if __name__ == '__main__':
     main()
