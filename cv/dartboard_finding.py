@@ -28,22 +28,25 @@ MATCHING_METHODS = [
     cv.TM_CCOEFF_NORMED
 ]
 
+BULLSEYE_COLOR_BOUNDARIES = ( (10, 150, 190), (62, 255, 255) ) # yellow, but changable obviously
+
 #########
 #### COMPUTER VISION CLASSES
 #########
 
 class BullseyeResult(object):
-    def __init__(self, corner1, center, corner2, pos):
+    def __init__(self, corner1, center, corner2, supplementary_image=None):
         self.corner1 = corner1
         self.center = center
         self.corner2 = corner2
-        self.pos = pos
+        self.pos = real_world_position(pos)
+        self.supplementary_image = supplementary_image
 
-class MatchTemplateResult(BullseyeResult):
-    def __init__(self, corner1, center, corner2, pos, normalized_image):
-        super(MatchTemplateResult, self).__init__(corner1, center, corner2, pos) 
-        self.normalized_image = normalized_image
-
+class CircularBullsyeResult(BullseyeResult):
+    def __init__(self, center, radius, supplementary_image=None):
+        corner1 = (center[0] - radius, center[1] - radius)
+        corner2 = (center[0] + radius, center[1] + radius) 
+        super(CircularBullseyeResult, self).__init__(corner1, center, corner2, supplementary_image)
 
 class BullseyeFinder(object):
     def __init__(self, draw=False, test_point=None):
@@ -51,18 +54,20 @@ class BullseyeFinder(object):
         self.test_point = test_point
 
     def run(self):
-        self.result = self.find_bullseye()
-        self.report_bullseye(self.result)
+        rgb_image = get_video() # grab image from kinect
+        self.result = self.find_bullseye(rgb_image)
 
-    def find_bullseye(self):
+        rgb_mat = numpy.asarray(rgb_image[:,:]) # make it numpy style
+        self.report_bullseye(self.result, rgb_mat)
+
+    def find_bullseye(self, rgb_image):
         return None # help me out here 
 
-    def report_bullseye(self, bullseye_result):
+    def report_bullseye(self, bullseye_result, display_image):
         print 'match point:', bullseye_result.center
         print '3d match space:', bullseye_result.pos[0]
         print 'z_info:', bullseye_result.pos[1]
 
-        display_image = rgb_mat
         if self.test_point:  
             print 'test point / real world test loc:'
             print self.test_point
@@ -81,6 +86,11 @@ class BullseyeFinder(object):
             cv.namedWindow(kinect_window, cv.WINDOW_AUTOSIZE)
             cv.imshow(kinect_window, display_image)
 
+            if bullseye_result.supplementary_image:
+                supplementary_window = 'supplementary image ' + self.window_number
+                cv.namedWindow(supplementary_window, cv.WINDOW_AUTOSIZE)
+                cv.imshow(supplementary_window, bullseye_result.supplementary_image)
+
 
 class TemplateMatcher(BullseyeFinder):
     def __init__(self, draw=False, test_point=None, matching_method=cv.TM_SQDIFF):
@@ -88,11 +98,8 @@ class TemplateMatcher(BullseyeFinder):
         self.matching_method = matching_method
 
     # override !
-    def find_bullseye(self):
-        # get the rgb image from kinect
-        rgb_image = get_video()
-
-        # convert rbg image to numpy matrix
+    def find_bullseye(self, rgb_image):
+        # convert kinect rbg image to numpy matrix
         rgb_mat = numpy.asarray(rgb_image[:,:])
 
         # run the template matching
@@ -100,16 +107,11 @@ class TemplateMatcher(BullseyeFinder):
         return match_result
 
     # override !
-    def report_bullseye(self, bullseye_result):
+    def report_bullseye(self, bullseye_result, display_image):
         name = TemplateMatcher.matching_method_name(self.matching_method)
         print 'matching method:', self.matching_method, '(' + name + ')'
 
-        super(TemplateMatcher, self).report_bullseye(bullseye_result)
-
-        if self.draw:
-            result_window = 'template matching image ' + self.window_number
-            cv.namedWindow(result_window, cv.WINDOW_AUTOSIZE)
-            cv.imshow(result_window, bullseye_result.normalized_image)
+        super(TemplateMatcher, self).report_bullseye(bullseye_result, display_image)
 
     @staticmethod
     def matching_method_name(matching_method):
@@ -148,10 +150,104 @@ class TemplateMatcher(BullseyeFinder):
         match_center = (match_loc[0] + template.shape[0] / 2, match_loc[1] + template.shape[1] / 2)
         match_corner = (match_loc[0] + template.shape[0], match_loc[1] + template.shape[1])
 
-        # get real world position of match_loc for fun
-        match_center_pos = real_world_position(match_center)
+        return BullseyeResult(match_loc, match_center, match_corner, normalized_match_result)
 
-        return MatchTemplateResult(match_loc, match_center, match_corner, match_center_pos, normalized_match_result)
+
+class ColorBasedFinder(BullseyeFinder):
+    def __init__(self, draw=False, test_point=None, color_boundaries=BULLSEYE_COLOR_BOUNDARIES):
+        super(ColorBasedFinder, self).__init__(draw, test_point)
+        self.color_boundaries = color_boundaries
+        self.lower, self.upper = self.color_boundaries
+
+# inspired by http://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
+class CircularColorBasedFinder(ColorBasedFinder):
+    def __init__(self, draw=False, test_point=None, color_boundaries=BULLSEYE_COLOR_BOUNDARIES, dp=1.2, min_dist=50):
+        super(CircularColorbasedFinder, self).__init__(draw, test_point, color_boundaries)
+        self.dp = dp
+        self.min_dist = min_dist
+
+    # override !
+    def find_bullseye(self, rgb_image):
+        # copy kinect rgb image for drawing
+        drawing_image = rgb_image.copy()
+
+        # convert to grayscale
+        gray_image = cv.cvtColor(rgb_image, cv.COLOR_BGR2GRAY)
+
+        # detect circles in the image
+        circles = cv.HoughCircles(gray_image, cv.cv.CV_HOUGH_GRADIENT, self.dp, self.min_dist)
+
+        # here we will store what we think the bullseye is
+        bullseye_circle = None
+
+        # ensure at least some circles were found
+        if circles is not None:
+            # convert the (x, y) coordinates and radius of the circles to integers
+            circles = numpy.round(circles[0, :]).astype("int")
+
+            # loop over the (x, y) coordinates and radius of the circles
+            for (x, y, r) in circles:
+                if not bullseye_circle and self.pixel_fits_bullseye_profile(rgb_image[x, y]):
+                    bullseye_circle = (x, y, r)
+
+                if self.draw:
+                    # draw the circle in the output image, then draw a rectangle
+                    # corresponding to the center of the circle
+                    cv.circle(drawing_image, (x, y), r, (0, 255, 0), 4)
+                    cv.rectangle(drawing_image, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+
+        if bullseye_circle:
+            center = (bullseye_circle[0], bullseye_circle[1])
+            radius = bullseye_circle[2]
+            return CircularBullseyeResult(center, radius, drawing_image)
+        else:
+            return None
+
+    def pixel_fits_bullsye_profile(self, pixel):
+        b, g, r = pixel
+        lower_b, lower_g, lower_r = self.lower
+        upper_b, upper_g, upper_r = self.upper
+        if b < lower_b or b > upper_b or \
+           g < lower_g or g > upper_g or \
+           r < lower_r or r > upper_r:
+            return False
+        return True
+
+# Inspired by http://stackoverflow.com/questions/12943410/opencv-python-single-rather-than-multiple-blob-tracking
+class BlobbyColorBasedFinder(ColorBasedFinder):
+    # override !
+    def find_bullseye(self, rgb_image):
+        # smooth kinect rgb image
+        smooth_image = cv.blur(rgb_image, (3,3))
+
+        # convert upper and lower boundaries to numpy
+        lower = numpy.array(self.lower, dytype="uint8")
+        upper = numpy.array(self.upper, dtype="uint8")
+
+        # find range of smoothed kinect image within color boundaries
+        thresh_image = cv.inRange(smooth_image, lower, upper)
+        supplementary_thresh = thresh_image.copy()
+
+        # find contours in the threshold image
+        contours, hierarchy = cv.findContours(thresh_image, cv.RETR_LIST,cv.CHAIN_APPROX_SIMPLE)
+
+        # finding contour with maximum area and store it as best_cnt
+        max_area, largest_contour = 0, None
+        for cnt in contours:
+            area = cv.contourArea(cnt)
+            if area > max_area:
+                max_area = area
+                largest_contour = cnt
+
+        if not largest_contour:
+            return None
+
+        # finding centroids of largest_contour and draw a circle there
+        moments = cv.moments(largest_contour)
+        cx, cy = int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])
+
+        return CircularBullseyeResult((cx, cy), 5, supplementary_thresh)
+
 
 ########
 ### KINECT STUFF
