@@ -43,55 +43,55 @@ void setup() {
   pinMode(motorPin, OUTPUT);
   pinMode(enablePin, OUTPUT);
   pinMode(inhibitPin, OUTPUT);
-  
+
   Serial.begin(4800);
-  
+
   if (shouldPrint) {
-    Serial.println("Getting started!"); 
+    Serial.println("Getting started!");
   }
-  
+
   writeToMotor();
   writeEnabledPin();
   resetLoopTimer();
 }
 
-void loop() {  
+void loop() {
   if (!shouldLoop && cyclesCompleted > 0) {
-    return; // get out of here! 
+    return; // get out of here!
   }
-   
+
   // ramp from 0 -> max velocity
   if (loopState == RAMPING_UP && isLoopTimerExpired(rampStepDelay)) {
     current_pwm += rampUpIncrement;
     writeToMotor();
     printRampingUp(current_pwm);
-    
+
     if (current_pwm == rampUpLimit) {
       transitionToSustain();
     }
-    
+
     resetLoopTimer();
   }
-  
+
   // sustain max velocity
   if (loopState == SUSTAINING && isLoopTimerExpired(sustainTime)) {
       loopState = RAMPING_DOWN;
       resetLoopTimer();
   }
-  
+
   // ramp from max velocity -> 0
   if (loopState == RAMPING_DOWN && isLoopTimerExpired(rampStepDelay)) {
     current_pwm += rampDownIncrement;
     writeToMotor();
     printRampingDown(current_pwm);
-    
+
     if (current_pwm == PWM_ZERO_VEL) {
       transitionToWaiting();
     }
-    
+
     resetLoopTimer();
   }
-  
+
   // wait for next cycle
   if (loopState == WAITING && isLoopTimerExpired(timeBetweenLoops)) {
     loopState = RAMPING_UP;
@@ -112,7 +112,7 @@ void serialEvent() {
         printPinState(enabled);
         writeEnabledPin();
         break;
-        
+
       case '3':
       case '4':
         inhibited = (inChar == '4');
@@ -130,7 +130,7 @@ void writeEnabledPin() {
 }
 
 void writeInhibitPin() {
-  digitalWrite(inhibitPin, inhibited? HIGH : LOW); 
+  digitalWrite(inhibitPin, inhibited? HIGH : LOW);
 }
 
 void writeToMotor() {
@@ -139,17 +139,17 @@ void writeToMotor() {
 
 /// Loop Timer
 boolean isLoopTimerExpired(int ms) {
-  return millis() - loopTimer >= ms; 
+  return millis() - loopTimer >= ms;
 }
 
 void resetLoopTimer() {
-  loopTimer = millis();  
+  loopTimer = millis();
 }
 
 /// State Transitions
 void transitionToSustain() {
   loopState = SUSTAINING;
-  
+
   if (shouldPrint) {
     Serial.print("sustaining with pwm ");
     Serial.print(current_pwm);
@@ -162,7 +162,7 @@ void transitionToSustain() {
 void transitionToWaiting() {
   loopState = WAITING;
   cyclesCompleted += 1;
-  
+
   if (shouldPrint) {
     Serial.print("completed cycle ");
     Serial.print(cyclesCompleted);
@@ -184,9 +184,9 @@ void printRampingDown(int val) {
   if (shouldPrint) {
     Serial.print("ramping down: ");
     Serial.println(val);
-  }  
+  }
 }
 
 void printPinState(boolean on) {
-  Serial.println(on? "HIGH" : "LOW"); 
+  Serial.println(on? "HIGH" : "LOW");
 }
