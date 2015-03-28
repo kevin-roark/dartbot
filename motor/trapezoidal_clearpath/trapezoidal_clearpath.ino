@@ -22,7 +22,8 @@ int timeBetweenLoops = 4000; // ms
 #define clockwise true
 #define shouldLoop true
 #define shouldPrint true
-#define enabled false
+#define initiallyEnable false
+#define initiallyInhibit false
 
 // derived variables
 int rampStepDelay = rampTime / PWM_ZERO_VEL;
@@ -31,6 +32,8 @@ int rampUpLimit = clockwise? (PWM_MAX_CW_VEL + 1) : (PWM_MAX_CCW_VEL - 1); // su
 int rampDownIncrement = clockwise ? +1 : -1;
 
 // state management
+boolean enabled = initiallyEnable;
+boolean inhibited = initiallyInhibit;
 int cyclesCompleted = 0;
 int current_pwm = PWM_ZERO_VEL;
 int loopState = RAMPING_UP;
@@ -96,9 +99,38 @@ void loop() {
   }
 }
 
+
+/// SerialEvent called whenever key is pressed, essentially. Runs between loop() calls
+void serialEvent() {
+  while (Serial.available()) {
+    char inChar = (char) Serial.read();
+    switch (inChar) {
+      case '1':
+      case '2':
+        enabled = (inChar == '2');
+        Serial.print("SETTING ENABLED PIN ");
+        printPinState(enabled);
+        writeEnabledPin();
+        break;
+        
+      case '3':
+      case '4':
+        inhibited = (inChar == '4');
+        Serial.print("SETTING INHIBIT PIN ");
+        printPinState(inhibited);
+        writeInhibitPin();
+        break;
+    }
+  }
+}
+
 /// Pins
 void writeEnabledPin() {
   digitalWrite(enablePin, enabled? HIGH : LOW);
+}
+
+void writeInhibitPin() {
+  digitalWrite(inhibitPin, inhibited? HIGH : LOW); 
 }
 
 void writeToMotor() {
@@ -155,3 +187,6 @@ void printRampingDown(int val) {
   }  
 }
 
+void printPinState(boolean on) {
+  Serial.println(on? "HIGH" : "LOW"); 
+}
