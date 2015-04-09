@@ -11,9 +11,12 @@
 #define WAITING 3
 
 // pin configuration
-#define motorPin 9
-#define enablePin 2
-#define inhibitPin 4
+#define motor1PWM_pin 9
+#define motor1Enable_pin 2
+#define motor1Inhibit_pin 4
+#define motor2PWM_pin 10
+#define motor2Enable_pin 3
+#define motor2Inhibit_pin 5
 
 // behavior configuration
 int rampTime = 2000; // ms
@@ -40,9 +43,12 @@ int loopState = RAMPING_UP;
 unsigned long loopTimer;
 
 void setup() {
-  pinMode(motorPin, OUTPUT);
-  pinMode(enablePin, OUTPUT);
-  pinMode(inhibitPin, OUTPUT);
+  pinMode(motor1PWM_pin, OUTPUT);
+  pinMode(motor1Enable_pin, OUTPUT);
+  pinMode(motor1Inhibit_pin, OUTPUT);
+  pinMode(motor2PWM_pin, OUTPUT);
+  pinMode(motor2Enable_pin, OUTPUT);
+  pinMode(motor2Inhibit_pin, OUTPUT);
 
   Serial.begin(4800);
 
@@ -50,8 +56,10 @@ void setup() {
     Serial.println("Getting started!");
   }
 
-  writeToMotor();
-  writeEnabledPin();
+  writeToMotor(1);
+  writeToMotor(2);
+  writeEnabledPins();
+  writeInhibitPins();
   resetLoopTimer();
 }
 
@@ -63,7 +71,8 @@ void loop() {
   // ramp from 0 -> max velocity
   if (loopState == RAMPING_UP && isLoopTimerExpired(rampStepDelay)) {
     current_pwm += rampUpIncrement;
-    writeToMotor();
+    writeToMotor(1);
+    writeToMotor(2);
     printRampingUp(current_pwm);
 
     if (current_pwm == rampUpLimit) {
@@ -82,7 +91,8 @@ void loop() {
   // ramp from max velocity -> 0
   if (loopState == RAMPING_DOWN && isLoopTimerExpired(rampStepDelay)) {
     current_pwm += rampDownIncrement;
-    writeToMotor();
+    writeToMotor(1);
+    writeToMotor(2);
     printRampingDown(current_pwm);
 
     if (current_pwm == PWM_ZERO_VEL) {
@@ -110,7 +120,7 @@ void serialEvent() {
         enabled = (inChar == '2');
         Serial.print("SETTING ENABLED PIN ");
         printPinState(enabled);
-        writeEnabledPin();
+        writeEnabledPins();
         break;
 
       case '3':
@@ -118,23 +128,24 @@ void serialEvent() {
         inhibited = (inChar == '4');
         Serial.print("SETTING INHIBIT PIN ");
         printPinState(inhibited);
-        writeInhibitPin();
+        writeInhibitPins();
         break;
     }
   }
 }
 
 /// Pins
-void writeEnabledPin() {
-  digitalWrite(enablePin, enabled? HIGH : LOW);
+void writeEnabledPins() {
+  digitalWrite(motor1Enable_pin, enabled? HIGH : LOW);
 }
 
-void writeInhibitPin() {
-  digitalWrite(inhibitPin, inhibited? HIGH : LOW);
+void writeInhibitPins() {
+  digitalWrite(motor1Inhibit_pin, inhibited? HIGH : LOW);
 }
 
-void writeToMotor() {
-  analogWrite(motorPin, current_pwm);
+void writeToMotor(int motor) {
+  int pin = motor == 1 ? motor1PWM_pin : motor2PWM_pin;
+  analogWrite(pin, current_pwm);
 }
 
 /// Loop Timer
