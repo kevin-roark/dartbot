@@ -14,10 +14,13 @@
 #define motor1PWM_pin 9
 #define motor1Enable_pin 2
 #define motor1Inhibit_pin 4
+
 #define motor2PWM_pin 10
 #define motor2Enable_pin 3
 #define motor2Inhibit_pin 5
+
 #define limitSwitch_pin 13
+#define electromagnet_pin 11
 
 // behavior configuration
 int rampTime = 2000; // ms
@@ -52,6 +55,7 @@ void setup() {
   pinMode(motor2Inhibit_pin, OUTPUT);
   
   pinMode(limitSwitch_pin, INPUT);
+  pinMode(electromagnet_pin, OUTPUT);
 
   Serial.begin(4800);
 
@@ -69,11 +73,6 @@ void setup() {
 void loop() {
   if (!shouldLoop && cyclesCompleted > 0) {
     return; // get out of here!
-  }
-  
-  int limitSwitch = digitalRead(limitSwitch_pin);
-  if (limitSwitch == HIGH) {
-    Serial.println("limit switch hit dang.");
   }
 
   // ramp from 0 -> max velocity
@@ -138,8 +137,22 @@ void serialEvent() {
         printPinState(inhibited);
         writeInhibitPins();
         break;
+        
+      case '5':
+      case '6':
+        writeElectroMagnet(inChar == '6');
+        break;
     }
   }
+}
+
+/// Electromagnet
+void writeElectroMagnet(boolean on) {
+ digitalWrite(electromagnet_pin, on? HIGH : LOW);
+ if (shouldPrint) {
+   Serial.print("SET ELECTROMAGNET ");
+   printPinState(on);
+ }
 }
 
 /// Pins
