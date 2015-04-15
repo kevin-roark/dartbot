@@ -13,18 +13,21 @@
 #define motor2PWM_pin 10
 #define motor2Enable_pin 3
 #define motor2Inhibit_pin 5
-#define limitSwitch_pin 13
+
+#define firstLimitSwitch_pin 12
+#define secondLimitSwitch_pin 13
 
 // behavior configuration
 #define shouldPrint true
 #define initiallyEnable false
 #define initiallyInhibit false
+#define minDepressionTime 200
 
 // state management
 boolean enabled = initiallyEnable;
 boolean inhibited = initiallyInhibit;
 boolean clockwise = true;
-boolean waitingForLimitDepress = false;
+int limitPinWaitingForDepress = 0;
 unsigned long lastLimitSwitchTime;
 
 void setup() {
@@ -34,8 +37,9 @@ void setup() {
   pinMode(motor2PWM_pin, OUTPUT);
   pinMode(motor2Enable_pin, OUTPUT);
   pinMode(motor2Inhibit_pin, OUTPUT);
-  
-  pinMode(limitSwitch_pin, INPUT);
+
+  pinMode(firstLimitSwitch_pin, INPUT);
+  pinMode(secondLimitSwitch_pin, INPUT);
 
   Serial.begin(4800);
 
@@ -47,21 +51,12 @@ void setup() {
   writeToMotor(2, PWM_ZERO_VEL);
   writeEnabledPins();
   writeInhibitPins();
-  
+
   lastLimitSwitchTime = millis();
 }
 
-void loop() {  
-  int limitSwitch = digitalRead(limitSwitch_pin);
-  if (limitSwitch == LOW && !waitingForLimitDepress) {
-    Serial.println("limit switch hit dang!!!");
-    waitingForLimitDepress = true;
-    lastLimitSwitchTime = millis();
-    clockwise = !clockwise;
-  } else if (limitSwitch == HIGH && waitingForLimitDepress && millis() - lastLimitSwitchTime > 200) {
-    waitingForLimitDepress = false;
-    Serial.println("i am depressed!!"); 
-  }
+void loop() {
+  checkLimitSwitches();
 
   int duty_cycle = clockwise? SLOW_CW_DUTY : SLOW_CCW_DUTY;
   writeToMotor(1, duty_cycle);
@@ -90,6 +85,28 @@ void serialEvent() {
         writeInhibitPins();
         break;
     }
+  }
+}
+
+/// Limit Switches
+
+void checkLimitSwitches() {
+  if (limitPinWaitingForDepress == 0) {
+    if (digitalRead(firstLimitSwitch_pin) == LOW) {
+      limitPinWaitingForDepress = firstLimitSwitch_pin;
+    } else if (digitalRead(secondLimitSwitch_pin) == LOW) {
+      limitPinWaitingForDepress = secondLimitSwitch_pin;
+    }
+
+    if (limitPinWaitingForDepress > 0) {
+      Serial.println("limit switch pressed!!");
+      lastLimitSwitchTime = millis();
+      clockwise = !clockwise;
+    }
+  }
+  else if (digitalRead(limitPinWaitingForDepress) == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
+    limitPinWaitingForDepress = 0;
+    Serial.println("i am depressed!!");
   }
 }
 
@@ -125,3 +142,4 @@ void printRampingDown(int val) {
 void printPinState(boolean on) {
   Serial.println(on? "HIGH" : "LOW");
 }
+
