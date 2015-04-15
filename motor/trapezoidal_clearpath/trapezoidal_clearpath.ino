@@ -17,6 +17,7 @@
 #define motor2PWM_pin 10
 #define motor2Enable_pin 3
 #define motor2Inhibit_pin 5
+#define limitSwitch_pin 13
 
 // behavior configuration
 int rampTime = 2000; // ms
@@ -49,6 +50,8 @@ void setup() {
   pinMode(motor2PWM_pin, OUTPUT);
   pinMode(motor2Enable_pin, OUTPUT);
   pinMode(motor2Inhibit_pin, OUTPUT);
+  
+  pinMode(limitSwitch_pin, INPUT);
 
   Serial.begin(4800);
 
@@ -66,6 +69,11 @@ void setup() {
 void loop() {
   if (!shouldLoop && cyclesCompleted > 0) {
     return; // get out of here!
+  }
+  
+  int limitSwitch = digitalRead(limitSwitch_pin);
+  if (limitSwitch == HIGH) {
+    Serial.println("limit switch hit dang.");
   }
 
   // ramp from 0 -> max velocity
