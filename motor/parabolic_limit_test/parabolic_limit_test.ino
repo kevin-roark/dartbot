@@ -11,11 +11,11 @@
 #define motor1Enable_pin 2
 #define motor1Inhibit_pin 4
 #define motor2PWM_pin 10
-#define motor2Enable_pin 3
+#define motor2Enable_pin 1
 #define motor2Inhibit_pin 5
 
-#define firstLimitSwitch_pin 12
-#define secondLimitSwitch_pin 13
+int firstLimitSwitch_pin = 13;
+int secondLimitSwitch_pin = 12;
 
 // behavior configuration
 #define shouldPrint true
@@ -38,8 +38,8 @@ void setup() {
   pinMode(motor2Enable_pin, OUTPUT);
   pinMode(motor2Inhibit_pin, OUTPUT);
 
-  pinMode(firstLimitSwitch_pin, INPUT);
-  pinMode(secondLimitSwitch_pin, INPUT);
+  pinMode(firstLimitSwitch_pin, INPUT_PULLUP);
+  pinMode(secondLimitSwitch_pin, INPUT_PULLUP);
 
   Serial.begin(4800);
 
@@ -63,6 +63,32 @@ void loop() {
   writeToMotor(2, duty_cycle);
 }
 
+/// Limit Switches
+void checkLimitSwitches() {  
+  int firstLimit = digitalRead(firstLimitSwitch_pin);
+  int secondLimit = digitalRead(secondLimitSwitch_pin);
+  int waitingForDepressLimit = (limitPinWaitingForDepress == firstLimitSwitch_pin ? firstLimit : secondLimit);
+  
+  if (limitPinWaitingForDepress == 0) {
+    if (firstLimit == LOW) {
+      limitPinWaitingForDepress = firstLimitSwitch_pin;
+    }
+    else if (secondLimit == LOW) {
+      limitPinWaitingForDepress = secondLimitSwitch_pin;
+    }
+
+    if (limitPinWaitingForDepress > 0) {
+      Serial.print("limit switch pressed: ");
+      Serial.println(limitPinWaitingForDepress);
+      lastLimitSwitchTime = millis();
+      clockwise = !clockwise;
+    }
+  }
+  else if (waitingForDepressLimit == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
+    limitPinWaitingForDepress = 0;
+    Serial.println("i am depressed!!");
+  }
+}
 
 /// SerialEvent called whenever key is pressed, essentially. Runs between loop() calls
 void serialEvent() {
@@ -88,35 +114,15 @@ void serialEvent() {
   }
 }
 
-/// Limit Switches
-
-void checkLimitSwitches() {
-  if (limitPinWaitingForDepress == 0) {
-    if (digitalRead(firstLimitSwitch_pin) == LOW) {
-      limitPinWaitingForDepress = firstLimitSwitch_pin;
-    } else if (digitalRead(secondLimitSwitch_pin) == LOW) {
-      limitPinWaitingForDepress = secondLimitSwitch_pin;
-    }
-
-    if (limitPinWaitingForDepress > 0) {
-      Serial.println("limit switch pressed!!");
-      lastLimitSwitchTime = millis();
-      clockwise = !clockwise;
-    }
-  }
-  else if (digitalRead(limitPinWaitingForDepress) == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
-    limitPinWaitingForDepress = 0;
-    Serial.println("i am depressed!!");
-  }
-}
-
 /// Pins
 void writeEnabledPins() {
   digitalWrite(motor1Enable_pin, enabled? HIGH : LOW);
+  digitalWrite(motor2Enable_pin, enabled? HIGH : LOW);
 }
 
 void writeInhibitPins() {
   digitalWrite(motor1Inhibit_pin, inhibited? HIGH : LOW);
+  digitalWrite(motor2Inhibit_pin, inhibited? HIGH : LOW);
 }
 
 void writeToMotor(int motor, int duty_cycle) {
