@@ -1,58 +1,25 @@
 
-// Ramp cycles as percentage between 0 -> 255
-#define PWM_ZERO_VEL 127
-#define PWM_MAX_CW_VEL 0
-#define PWM_MAX_CCW_VEL 255
+// Ramp cycles as percentage between 0 -> 255 for uni mode
+// 0 is max clockwise, 127 zero, 255 max ccw for bi mode
+#define ZERO_DUTY 127.5
 #define SLOW_CW_DUTY 122
 #define SLOW_CCW_DUTY 132
 
-// pin configuration
-#define motor1PWM_pin 9
-#define motor1Enable_pin 2
-#define motor1Inhibit_pin 4
-#define motor2PWM_pin 10
-#define motor2Enable_pin 1
-#define motor2Inhibit_pin 5
-
-int firstLimitSwitch_pin = 13;
-int secondLimitSwitch_pin = 12;
-
-// behavior configuration
-#define shouldPrint true
-#define initiallyEnable false
-#define initiallyInhibit false
-#define minDepressionTime 200
+// configuration
+#define MOTOR_MAX_VEL 100.0 // in rps
 
 // state management
-boolean enabled = initiallyEnable;
-boolean inhibited = initiallyInhibit;
+boolean enabled = false;
+boolean inhibited = false;
 boolean clockwise = true;
-int limitPinWaitingForDepress = 0;
-unsigned long lastLimitSwitchTime;
 
 void setup() {
-  pinMode(motor1PWM_pin, OUTPUT);
-  pinMode(motor1Enable_pin, OUTPUT);
-  pinMode(motor1Inhibit_pin, OUTPUT);
-  pinMode(motor2PWM_pin, OUTPUT);
-  pinMode(motor2Enable_pin, OUTPUT);
-  pinMode(motor2Inhibit_pin, OUTPUT);
-
-  pinMode(firstLimitSwitch_pin, INPUT_PULLUP);
-  pinMode(secondLimitSwitch_pin, INPUT_PULLUP);
+  setupMotorPins();
+  setupLimitSwitches();
 
   Serial.begin(4800);
-
-  if (shouldPrint) {
-    Serial.println("Getting started!");
-  }
-
-  writeToMotor(1, PWM_ZERO_VEL);
-  writeToMotor(2, PWM_ZERO_VEL);
-  writeEnabledPins();
-  writeInhibitPins();
-
-  lastLimitSwitchTime = millis();
+  
+  printStartMessage();
 }
 
 void loop() {
@@ -61,91 +28,10 @@ void loop() {
   int duty_cycle = clockwise? SLOW_CW_DUTY : SLOW_CCW_DUTY;
   writeToMotor(1, duty_cycle);
   writeToMotor(2, duty_cycle);
-}
-
-/// Limit Switches
-void checkLimitSwitches() {  
-  int firstLimit = digitalRead(firstLimitSwitch_pin);
-  int secondLimit = digitalRead(secondLimitSwitch_pin);
-  int waitingForDepressLimit = (limitPinWaitingForDepress == firstLimitSwitch_pin ? firstLimit : secondLimit);
   
-  if (limitPinWaitingForDepress == 0) {
-    if (firstLimit == LOW) {
-      limitPinWaitingForDepress = firstLimitSwitch_pin;
-    }
-    else if (secondLimit == LOW) {
-      limitPinWaitingForDepress = secondLimitSwitch_pin;
-    }
-
-    if (limitPinWaitingForDepress > 0) {
-      Serial.print("limit switch pressed: ");
-      Serial.println(limitPinWaitingForDepress);
-      lastLimitSwitchTime = millis();
-      clockwise = !clockwise;
-    }
-  }
-  else if (waitingForDepressLimit == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
-    limitPinWaitingForDepress = 0;
-    Serial.println("i am depressed!!");
-  }
-}
-
-/// SerialEvent called whenever key is pressed, essentially. Runs between loop() calls
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char) Serial.read();
-    switch (inChar) {
-      case '1':
-      case '2':
-        enabled = (inChar == '2');
-        Serial.print("SETTING ENABLED PIN ");
-        printPinState(enabled);
-        writeEnabledPins();
-        break;
-
-      case '3':
-      case '4':
-        inhibited = (inChar == '4');
-        Serial.print("SETTING INHIBIT PIN ");
-        printPinState(inhibited);
-        writeInhibitPins();
-        break;
-    }
-  }
-}
-
-/// Pins
-void writeEnabledPins() {
-  digitalWrite(motor1Enable_pin, enabled? HIGH : LOW);
-  digitalWrite(motor2Enable_pin, enabled? HIGH : LOW);
-}
-
-void writeInhibitPins() {
-  digitalWrite(motor1Inhibit_pin, inhibited? HIGH : LOW);
-  digitalWrite(motor2Inhibit_pin, inhibited? HIGH : LOW);
-}
-
-void writeToMotor(int motor, int duty_cycle) {
-  int pin = motor == 1 ? motor1PWM_pin : motor2PWM_pin;
-  analogWrite(pin, duty_cycle);
-}
-
-/// Printing
-void printRampingUp(int val) {
-  if (shouldPrint) {
-    Serial.print("ramping up: ");
-    Serial.println(val);
-  }
-}
-
-void printRampingDown(int val) {
-  if (shouldPrint) {
-    Serial.print("ramping down: ");
-    Serial.println(val);
-  }
-}
-
-void printPinState(boolean on) {
-  Serial.println(on? "HIGH" : "LOW");
+  float current_vel = (ZERO_DUTY - duty_cycle) * MOTOR_MAX_VEL;
+  addRiemannPoint(duty_cycle, millis());
+  Serial.print("current riemann sum: ");
+  Serial.println(currentRiemannSum());
 }
 
