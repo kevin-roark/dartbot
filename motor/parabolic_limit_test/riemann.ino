@@ -1,6 +1,8 @@
 
 /// Help
-#define MS_NORMALIZER 0.001
+#define TIME_NORMALIZER (0.001 * 0.1047) // ms and rpm -> rps
+#define MOTOR1_REDUCTION_RATIO 0.25
+#define MOTOR2_REDUCTION_RATIO 0.2
 
 /// State variables
 float running_left_sum = 0;
@@ -19,18 +21,18 @@ float currentRiemannSum() {
   return middleRiemannSum(); 
 }
 
-void addRiemannPoint(float vel, int ms) {  
+void addRiemannPoint(float vel, int ms, int motor) {  
   float ms_delta = ms - prev_ms;
+  float rr = motor == 1 ? MOTOR1_REDUCTION_RATIO : MOTOR2_REDUCTION_RATIO;
   
-  running_left_sum += (ms_delta * MS_NORMALIZER * prev_vel);
-  running_right_sum += (ms_delta * MS_NORMALIZER * vel);
+  running_left_sum += (ms_delta * TIME_NORMALIZER * prev_vel * rr);
+  running_right_sum += (ms_delta * TIME_NORMALIZER * vel * rr);
   
   prev_vel = vel;
   prev_ms = ms;
 }
 
 void resetRiemannSums() {
-  prev_vel = 0;
   running_left_sum = 0;
   running_right_sum = 0; 
 }

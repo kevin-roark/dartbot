@@ -3,8 +3,9 @@
 #define motor1PWM_pin 9
 #define motor1Enable_pin 2
 #define motor1Inhibit_pin 4
+
 #define motor2PWM_pin 10
-#define motor2Enable_pin 1
+#define motor2Enable_pin 3
 #define motor2Inhibit_pin 5
 
 /// API
