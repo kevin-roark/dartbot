@@ -29,9 +29,11 @@ void loop() {
   writeToMotor(1, duty_cycle);
   writeToMotor(2, duty_cycle);
   
-  float current_vel = (ZERO_DUTY - duty_cycle) * MOTOR_MAX_VEL;
-  addRiemannPoint(duty_cycle, millis());
-  Serial.print("current riemann sum: ");
-  Serial.println(currentRiemannSum());
+  float current_vel = ((ZERO_DUTY - duty_cycle) / ZERO_DUTY) * MOTOR_MAX_VEL;
+  addRiemannPoint(current_vel, millis());
+  Serial.print("sum: ");
+  Serial.print(currentRiemannSum());
+  Serial.print("     /     time: ");
+  Serial.println(millis());
 }
 
