@@ -38,6 +38,12 @@ void serialEvent() {
       case '0':
         deactivateLimitPin(); // depression of le pin
         break;
+
+      // electromagnet control
+      case 'q':
+      case 'w':
+        writeElectroMagnet(inChar == 'q');
+        break;
     }
   }
 }
