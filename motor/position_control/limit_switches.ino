@@ -20,21 +20,20 @@ void setupLimitSwitches() {
 }
 
 void checkLimitSwitches() {
-  if (limitPinWaitingForDepress == 0) {
-    if (digitalRead(motor1BacksideLimitSwitch_pin) == LOW) {
-      activateLimitPin(motor1BacksideLimitSwitch_pin);
-    }
-    else if (digitalRead(motor1NearsideLimitSwitch_pin) == LOW) {
-      activateLimitPin(motor1NearsideLimitSwitch_pin);
-    }
-    else if (digitalRead(motor2BacksideLimitSwitch_pin) == LOW) {
-      activateLimitPin(motor2BacksideLimitSwitch_pin);
-    }
-    else if (digitalRead(motor2NearsideLimitSwitch_pin) == LOW) {
-      activateLimitPin(motor2NearsideLimitSwitch_pin);
-    }
+  if (digitalRead(motor1BacksideLimitSwitch_pin) == LOW) {
+    activateLimitPin(motor1BacksideLimitSwitch_pin);
   }
-  else if (digitalRead(limitPinWaitingForDepress) == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
+  else if (digitalRead(motor1NearsideLimitSwitch_pin) == LOW) {
+    activateLimitPin(motor1NearsideLimitSwitch_pin);
+  }
+  else if (digitalRead(motor2BacksideLimitSwitch_pin) == LOW) {
+    activateLimitPin(motor2BacksideLimitSwitch_pin);
+  }
+  else if (digitalRead(motor2NearsideLimitSwitch_pin) == LOW) {
+    activateLimitPin(motor2NearsideLimitSwitch_pin);
+  }
+
+  if (limitPinWaitingForDepress > 0 && digitalRead(limitPinWaitingForDepress) == HIGH && millis() - lastLimitSwitchTime > minDepressionTime) {
     deactivateLimitPin();
   }
 }

@@ -18,6 +18,10 @@ void loop() {
 }
 
 void setMotorHome(int motor, bool home) {
+  if (!enabled) {
+    return;
+  }
+
   if (motor == 1) {
     motor_1_home = home;
     Serial.print("motor 1");
