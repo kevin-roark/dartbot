@@ -14,7 +14,7 @@ void serialEvent() {
       // homing control
       case '3':
       case '4':
-        setHome(inChar == '4');
+        //setHome(inChar == '4');
         break;
 
       // position control
@@ -37,12 +37,6 @@ void serialEvent() {
         break;
       case '0':
         deactivateLimitPin(); // depression of le pin
-        break;
-
-      // electromagnet control
-      case 'q':
-      case 'w':
-        writeElectroMagnet(inChar == 'q');
         break;
     }
   }

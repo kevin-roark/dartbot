@@ -49,9 +49,3 @@ void setEnabled(bool on) {
   printPinState(enabled);
   writeEnabledPins();
 }
-
-void setHome(bool home) {
-  Serial.print("SETTING HOMING PINS ");
-  printPinState(home);
-  writeHomingPins(home? HIGH : LOW);
-}
