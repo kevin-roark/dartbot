@@ -35,7 +35,7 @@ $(function() {
   function highlightActiveMenuButton() {
     var bottomElement = mostVisibleElement(sections);
     if (!bottomElement) {
-      bottomElement = $about;
+      return;
     }
 
     var bottomElementMenuButton = $('#' + bottomElement.attr('id') + '-menu-button');
@@ -61,21 +61,25 @@ function seekToPercent(vid, percent) {
   vid.currentTime = seekLocation;
 }
 
-function mostVisibleElement(elements, bottom, buffer) {
-  if (!buffer) buffer = 400;
+function mostVisibleElement(elements, bottomMost, buffer) {
+  if (!buffer) buffer = 100;
 
-  var bottom = $(window).scrollTop() + (bottom? window.innerHeight : 0) + (bottom? -buffer : buffer);
+  var topBound = $(window).scrollTop() + (bottomMost? -buffer : -buffer);
+  var bottomBound = topBound + window.innerHeight;
 
   var bestElement = null;
-  var bottomMostVisibleTop = 0;
+  var bestOffset = bottomMost? 0 : 10000000;
 
   for (var i = 0; i < elements.length; i++) {
     var $element = elements[i];
     var top = $element.offset().top;
+    var nextTop = (i === elements.length - 1 ? null : elements[i + 1].offset().top);
 
-    if (top > bottomMostVisibleTop && top < bottom) {
-      bestElement = $element;
-      bottomMostVisibleTop = top;
+    if ( (top >= topBound) || (nextTop && nextTop > bottomBound) ) {
+      if ( (bottomMost && top > bestOffset) || (!bottomMost && top < bestOffset) ) {
+        bestOffset = top;
+        bestElement = $element;
+      }
     }
   }
 
