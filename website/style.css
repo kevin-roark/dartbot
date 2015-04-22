@@ -5,20 +5,15 @@ html, body {
   margin: 0;
   padding: 0;
 }
-
-.footer {
-  height: 400px;
-}
-
 /* HEADER */
 
 #dartbot-header {
   width: 100%;
-  height: 350px;
-  line-height: 350px;
+  height: 600px;
+  line-height: 600px;
   position: relative;
 
-  background-color: rgb(223, 223, 223);
+  background-color: #f7e1f1;
 }
 
 #header-video {
@@ -37,6 +32,27 @@ html, body {
   letter-spacing: 1px;
 }
 
+/* FOOTER */
+
+.footer {
+  height: 300px;
+}
+
+/* SECTION DIVIDERS */
+
+.section-divider {
+  width: 100%;
+  height: 300px;
+  position: relative;
+
+  background-color: #eaeaea;
+}
+
+  .section-divider video {
+    width: 100%;
+    height: 100%;
+  }
+
 /* SECTIONS */
 
 .dartbot-section {
@@ -48,17 +64,61 @@ html, body {
 }
 
 .dartbot-section-header {
+  display: inline-block;
   margin-top: 30px;
 
   font-size: 36px;
 }
 
 .dartbot-section-body {
-  margin-left: 20px;
+  position: relative;
+  margin: 0px 30px;
 
   font-size: 20px;
   line-height: 30px;
 }
+
+/* TEAM */
+
+.team-member {
+  position: relative;
+  margin-top: 30px;
+  margin-bottom: 40px;
+
+  min-height: 270px;
+}
+
+.team-member-info, .team-member-bio {
+  width: 60%;
+}
+
+.team-member-info {
+  margin-top: 1em;
+  margin-bottom: 0.2em;
+}
+
+.team-member-name {
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.team-member-major {
+  font-size: 16px;
+}
+
+.team-member-picture-container {
+  position: absolute;
+  right: 5%;
+  bottom: 0px;
+
+  height: 270px;
+  max-height: 100%;
+}
+
+  .team-member-picture-container img {
+    max-width: 100%;
+    max-height: 100%;
+  }
 
 /* MENU */
 

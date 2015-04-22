@@ -15,32 +15,41 @@ $(function() {
   var $prototype = $('#dartbot-prototype');
   var sections = [$about, $team, $process, $manufacturing, $cad, $prototype];
 
-  var currentActiveMenuButton = null;
-
+  var lastSeekTime = new Date();
   $('body').mousemove(function(ev) {
+    var now = new Date();
+    if (now - lastSeekTime < 80) {
+      return;
+    }
+    lastSeekTime = now;
+
     var x = ev.pageX;
     var percent = x / window.innerWidth;
     seekToPercent(headerVideo, percent);
   });
 
-  $(document).scroll(function() {
-    var bottomElement = bottomMostVisibleElement(sections);
+  var currentActiveMenuButton = null;
+  highlightActiveMenuButton();
+  $(document).scroll(highlightActiveMenuButton);
+
+  function highlightActiveMenuButton() {
+    var bottomElement = mostVisibleElement(sections);
     if (!bottomElement) {
-      return;
+      bottomElement = $about;
     }
 
     var bottomElementMenuButton = $('#' + bottomElement.attr('id') + '-menu-button');
-    console.log(bottomElementMenuButton);
+    if (!bottomElementMenuButton) {
+      return;
+    }
 
     if (currentActiveMenuButton) {
       currentActiveMenuButton.removeClass('active-menu-button');
     }
 
-    if (bottomElementMenuButton) {
-      bottomElementMenuButton.addClass('active-menu-button');
-      currentActiveMenuButton = bottomElementMenuButton;
-    }
-  });
+    bottomElementMenuButton.addClass('active-menu-button');
+    currentActiveMenuButton = bottomElementMenuButton;
+  }
 
 });
 
@@ -52,10 +61,10 @@ function seekToPercent(vid, percent) {
   vid.currentTime = seekLocation;
 }
 
-function bottomMostVisibleElement(elements, buffer) {
-  if (!buffer) buffer = -200;
+function mostVisibleElement(elements, bottom, buffer) {
+  if (!buffer) buffer = 400;
 
-  var bottom = $(window).scrollTop() + window.innerHeight + buffer;
+  var bottom = $(window).scrollTop() + (bottom? window.innerHeight : 0) + (bottom? -buffer : buffer);
 
   var bestElement = null;
   var bottomMostVisibleTop = 0;
