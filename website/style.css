@@ -127,7 +127,7 @@ html, body {
 }
 
   .gallery-image {
-    margin: 15px 0px;
+    margin: 50px 0px;
   }
 
   .gallery-image.dyptich {
@@ -138,6 +138,7 @@ html, body {
   .gallery-image img {
     max-width: 100%;
     max-height: 450px;
+    box-shadow: 10px 10px 30px 7px #313131;
   }
 
 /* MENU */
