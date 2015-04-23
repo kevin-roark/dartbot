@@ -52,7 +52,7 @@ $(function() {
   }
 
   var processGallery = $('#process-gallery');
-  addToGallery(processGallery, 'media/process/', 5, [2]);
+  addToGallery(processGallery, 'media/process/', 9, [2, 6]);
 });
 
 function seekToPercent(vid, percent) {
