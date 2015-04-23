@@ -6,6 +6,8 @@ if (!window.$) {
 $(function() {
 
   var headerVideo = document.querySelector('#header-video');
+  var darbotManufacturingVideo1 = document.querySelector('#dartbot-manufacturing-video-1');
+  var dartbotPrototypeVideo1 = document.querySelector('#dartbot-prototype-video-1');
 
   var $about = $('#about-dartbot');
   var $team = $('#dartbot-team');
@@ -29,26 +31,60 @@ $(function() {
   });
 
   var currentActiveMenuButton = null;
-  highlightActiveMenuButton();
-  $(document).scroll(highlightActiveMenuButton);
+  var currentBottomElementID = null;
 
-  function highlightActiveMenuButton() {
+  var activeSectionBehaviors = {
+    'dartbot-manufacturing': function(active) {
+      if (active && darbotManufacturingVideo1.paused) {
+        darbotManufacturingVideo1.play();
+      } else if (!active && !darbotManufacturingVideo1.paused) {
+        darbotManufacturingVideo1.pause();
+      }
+    },
+
+    'dartbot-prototype': function(active) {
+      if (active && dartbotPrototypeVideo1.paused) {
+        dartbotPrototypeVideo1.play();
+      } else if (!active && !dartbotPrototypeVideo1.paused) {
+        dartbotPrototypeVideo1.pause();
+      }
+    }
+  };
+
+  updateActiveSection();
+  $(document).scroll(updateActiveSection);
+
+  function updateActiveSection() {
     var bottomElement = mostVisibleElement(sections);
     if (!bottomElement) {
       return;
     }
 
-    var bottomElementMenuButton = $('#' + bottomElement.attr('id') + '-menu-button');
+    var bottomElementID = bottomElement.attr('id');
+
+    var bottomElementMenuButton = $('#' + bottomElementID + '-menu-button');
     if (!bottomElementMenuButton) {
       return;
     }
 
-    if (currentActiveMenuButton) {
-      currentActiveMenuButton.removeClass('active-menu-button');
+    if (bottomElementID !== currentBottomElementID) {
+      if (currentActiveMenuButton) {
+        currentActiveMenuButton.removeClass('active-menu-button');
+      }
+
+      if (currentBottomElementID && activeSectionBehaviors[currentBottomElementID]) {
+        activeSectionBehaviors[currentBottomElementID](false);
+      }
     }
 
     bottomElementMenuButton.addClass('active-menu-button');
+
+    if (activeSectionBehaviors[bottomElementID]) {
+      activeSectionBehaviors[bottomElementID](true);
+    }
+
     currentActiveMenuButton = bottomElementMenuButton;
+    currentBottomElementID = bottomElementID;
   }
 
   var processGallery = $('#process-gallery');

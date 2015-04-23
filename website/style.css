@@ -145,6 +145,9 @@ body {
   .gallery-image img {
     max-width: 100%;
     max-height: 450px;
+  }
+
+  .gallery-image img, .gallery-image video {
     box-shadow: 10px 10px 30px 7px #313131;
   }
 
