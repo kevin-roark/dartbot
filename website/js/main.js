@@ -17,6 +17,12 @@ $(function() {
   var $prototype = $('#dartbot-prototype');
   var sections = [$about, $team, $process, $manufacturing, $cad, $prototype];
 
+  var processGallery = $('#process-gallery');
+  addToGallery(processGallery, 'media/process/', 10, [2, 6]);
+
+  var prototypeGallery = $('#prototype-gallery');
+  addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
+
   var lastSeekTime = new Date();
   $('body').mousemove(function(ev) {
     var now = new Date();
@@ -32,6 +38,8 @@ $(function() {
 
   var currentActiveMenuButton = null;
   var currentBottomElementID = null;
+  var lastMenuChangeTime = new Date();
+  var hasResetBackgroundColor = true;
 
   var activeSectionBehaviors = {
     'dartbot-manufacturing': function(active) {
@@ -52,7 +60,14 @@ $(function() {
   };
 
   updateActiveSection();
-  $(document).scroll(updateActiveSection);
+  $(document).scroll(function() {
+    updateActiveSection();
+  });
+
+  $('#dartbot-menu a').click(function() {
+    var elementID = $(this).attr('href').substring(1);
+    setColorForSection(elementID);
+  });
 
   function updateActiveSection() {
     var bottomElement = mostVisibleElement(sections);
@@ -75,6 +90,8 @@ $(function() {
       if (currentBottomElementID && activeSectionBehaviors[currentBottomElementID]) {
         activeSectionBehaviors[currentBottomElementID](false);
       }
+
+      setColorForSection(bottomElementID);
     }
 
     bottomElementMenuButton.addClass('active-menu-button');
@@ -87,11 +104,20 @@ $(function() {
     currentBottomElementID = bottomElementID;
   }
 
-  var processGallery = $('#process-gallery');
-  addToGallery(processGallery, 'media/process/', 10, [2, 6]);
+  function setColorForSection(section) {
+    $('body').velocity('stop');
+    $('body').velocity({backgroundColor: colorForSection(section)}, {duration: 500});
+    hasResetBackgroundColor = false;
+    lastMenuChangeTime = new Date();
+    setTimeout(resetBackgroundColor, 1000);
+  }
 
-  var prototypeGallery = $('#prototype-gallery');
-  addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
+  function resetBackgroundColor() {
+    if (!hasResetBackgroundColor && new Date() - lastMenuChangeTime > 950) {
+      $('body').velocity({backgroundColor: '#ffffff'}, {duration: 500});
+      hasResetBackgroundColor = true;
+    }
+  }
 });
 
 function seekToPercent(vid, percent) {
@@ -137,5 +163,28 @@ function addToGallery($gallery, folder, length, dyptichIndices) {
     }
 
     $gallery.append(image);
+  }
+}
+
+function colorForSection(index) {
+  switch (index) {
+    case 0:
+    case 'about-dartbot':
+      return '#ffffff';
+    case 1:
+    case 'dartbot-team':
+      return '#ffd559';
+    case 2:
+    case 'dartbot-process':
+      return '#53ec80';
+    case 3:
+    case 'dartbot-manufacturing':
+      return '#5375ff';
+    case 4:
+    case 'dartbot-cad':
+      return '#a853ff';
+    case 5:
+    case 'dartbot-prototype':
+      return '#ff7899';
   }
 }

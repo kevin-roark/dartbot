@@ -6,19 +6,15 @@ html, body {
   padding: 0;
 }
 
-body {
-
-}
-
 /* HEADER */
 
 #dartbot-header {
   width: 100%;
-  height: 600px;
+  height: 90%;
   line-height: 600px;
   position: relative;
 
-  background-color: #f7e1f1;
+  background-color: #f8b7c7;
 }
 
 #header-video {
@@ -33,8 +29,8 @@ body {
 
   text-align: center;
   color: white;
-  font-size: 72px;
-  letter-spacing: 1px;
+  font-size: 100px;
+  letter-spacing: 2px;
 }
 
 /* FOOTER */
@@ -49,8 +45,7 @@ body {
   width: 100%;
   height: 300px;
   position: relative;
-
-  background-color: #eaeaea;
+  margin-bottom: 100px;
 }
 
   .section-divider video {
@@ -65,16 +60,18 @@ body {
   margin: auto;
   padding: 20px;
 
-  background-color: white;
+  margin-bottom: 100px;
 }
 
 .dartbot-section-header {
   display: inline-block;
-  margin-top: 30px;
+  margin-top: 40px;
+  margin-bottom: 20px;
 
-  font-size: 36px;
+  font-size: 72px;
+  font-style: italic;
 
-  text-shadow: 0px 0px 3px rgba(150, 150, 150, 1);
+  /*text-shadow: 1px 1px 3px rgba(150, 150, 150, 1);*/
 }
 
 .dartbot-section-body {
@@ -83,6 +80,8 @@ body {
 
   font-size: 20px;
   line-height: 30px;
+
+  color: #1d1d1d;
 }
 
 /* TEAM */
@@ -143,11 +142,11 @@ body {
   }
 
   .gallery-image img {
-    max-width: 100%;
     max-height: 450px;
   }
 
   .gallery-image img, .gallery-image video {
+    max-width: 100%;
     box-shadow: 10px 10px 30px 7px #313131;
   }
 
