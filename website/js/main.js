@@ -51,6 +51,8 @@ $(function() {
     currentActiveMenuButton = bottomElementMenuButton;
   }
 
+  var processGallery = $('#process-gallery');
+  addToGallery(processGallery, 'media/process/', 5, [2]);
 });
 
 function seekToPercent(vid, percent) {
@@ -84,4 +86,17 @@ function mostVisibleElement(elements, bottomMost, buffer) {
   }
 
   return bestElement;
+}
+
+function addToGallery($gallery, folder, length, dyptichIndices) {
+  for (var i = 1; i <= length; i++) {
+    var imageName = folder + i + '.jpg';
+    var image = $('<div class="gallery-image"><img src="' + imageName + '" /></div>');
+
+    if (dyptichIndices.indexOf(i) !== -1 || dyptichIndices.indexOf(i - 1) !== -1) {
+      image.addClass('dyptich');
+    }
+
+    $gallery.append(image);
+  }
 }
