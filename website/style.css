@@ -68,6 +68,8 @@ html, body {
   margin-top: 30px;
 
   font-size: 36px;
+
+  text-shadow: 1px 1px 5px rgba(150, 150, 150, 1);
 }
 
 .dartbot-section-body {
