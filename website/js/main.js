@@ -52,7 +52,10 @@ $(function() {
   }
 
   var processGallery = $('#process-gallery');
-  addToGallery(processGallery, 'media/process/', 9, [2, 6]);
+  addToGallery(processGallery, 'media/process/', 10, [2, 6]);
+
+  var prototypeGallery = $('#prototype-gallery');
+  addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
 });
 
 function seekToPercent(vid, percent) {
