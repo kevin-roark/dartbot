@@ -5,6 +5,11 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+body {
+
+}
+
 /* HEADER */
 
 #dartbot-header {
@@ -57,10 +62,10 @@ html, body {
 
 .dartbot-section {
   width: 960px;
-  /*max-width: 1200px;*/
   margin: auto;
-
   padding: 20px;
+
+  background-color: white;
 }
 
 .dartbot-section-header {
