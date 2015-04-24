@@ -7,8 +7,9 @@ $(function() {
 
   var headerVideo = document.querySelector('#header-video');
   var $headerVideo = $(headerVideo);
-  var darbotManufacturingVideo1 = document.querySelector('#dartbot-manufacturing-video-1');
+  var dartbotManufacturingVideo1 = document.querySelector('#dartbot-manufacturing-video-1');
   var dartbotPrototypeVideo1 = document.querySelector('#dartbot-prototype-video-1');
+  var aboutDartbotVideo1 = document.querySelector('#about-dartbot-video-1');
 
   var $about = $('#about-dartbot');
   var $team = $('#dartbot-team');
@@ -45,21 +46,17 @@ $(function() {
   var hasResetBackgroundColor = true;
 
   var activeSectionBehaviors = {
+    'about-dartbot': function(active) {
+      activateVideo(active, aboutDartbotVideo1);
+    },
+
     'dartbot-manufacturing': function(active) {
-      if (active && darbotManufacturingVideo1.paused) {
-        darbotManufacturingVideo1.play();
-      } else if (!active && !darbotManufacturingVideo1.paused) {
-        darbotManufacturingVideo1.pause();
-      }
+      activateVideo(active, dartbotManufacturingVideo1);
     },
 
     'dartbot-prototype': function(active) {
-      if (active && dartbotPrototypeVideo1.paused) {
-        dartbotPrototypeVideo1.play();
-      } else if (!active && !dartbotPrototypeVideo1.paused) {
-        dartbotPrototypeVideo1.pause();
-      }
-    }
+      activateVideo(active, dartbotPrototypeVideo1);
+    },
   };
 
   updateActiveSection();
@@ -105,6 +102,14 @@ $(function() {
 
     currentActiveMenuButton = bottomElementMenuButton;
     currentBottomElementID = bottomElementID;
+  }
+
+  function activateVideo(active, video) {
+    if (active && video.paused && video.play) {
+      video.play();
+    } else if (!active && !video.paused && video.pause) {
+      video.pause();
+    }
   }
 
   function setColorForSection(section) {
