@@ -6,6 +6,7 @@ if (!window.$) {
 $(function() {
 
   var headerVideo = document.querySelector('#header-video');
+  var $headerVideo = $(headerVideo);
   var darbotManufacturingVideo1 = document.querySelector('#dartbot-manufacturing-video-1');
   var dartbotPrototypeVideo1 = document.querySelector('#dartbot-prototype-video-1');
 
@@ -23,10 +24,12 @@ $(function() {
   var prototypeGallery = $('#prototype-gallery');
   addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
 
+  swathSections();
+
   var lastSeekTime = new Date();
   $('body').mousemove(function(ev) {
     var now = new Date();
-    if (now - lastSeekTime < 80) {
+    if (now - lastSeekTime < 80 || $headerVideo.offset().top + $headerVideo.height() < $(window).scrollTop()) {
       return;
     }
     lastSeekTime = now;
@@ -106,16 +109,22 @@ $(function() {
 
   function setColorForSection(section) {
     $('body').velocity('stop');
-    $('body').velocity({backgroundColor: colorForSection(section)}, {duration: 500});
+    $('body').velocity({backgroundColor: colorForSection(section)}, {duration: 300});
     hasResetBackgroundColor = false;
     lastMenuChangeTime = new Date();
-    setTimeout(resetBackgroundColor, 1000);
+    setTimeout(resetBackgroundColor, 600);
   }
 
   function resetBackgroundColor() {
-    if (!hasResetBackgroundColor && new Date() - lastMenuChangeTime > 950) {
-      $('body').velocity({backgroundColor: '#ffffff'}, {duration: 500});
+    if (!hasResetBackgroundColor && new Date() - lastMenuChangeTime > 550) {
+      $('body').velocity({backgroundColor: '#ffffff'}, {duration: 300});
       hasResetBackgroundColor = true;
+    }
+  }
+
+  function swathSections() {
+    for (var i = 0; i < sections.length; i++) {
+      swath(sections[i].attr('id'));
     }
   }
 });
@@ -187,4 +196,10 @@ function colorForSection(index) {
     case 'dartbot-prototype':
       return '#ff7899';
   }
+}
+
+function swath(sectionID) {
+  var header = $('#' + sectionID + ' .dartbot-section-header');
+  header.css('background-color', colorForSection(sectionID));
+  header.css('box-shadow', '1px 1px 10px 0px rgba(0, 0, 0, 0.75)');
 }

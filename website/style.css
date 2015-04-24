@@ -67,11 +67,12 @@ html, body {
   display: inline-block;
   margin-top: 40px;
   margin-bottom: 20px;
+  padding: 10px;
 
   font-size: 72px;
   font-style: italic;
 
-  /*text-shadow: 1px 1px 3px rgba(150, 150, 150, 1);*/
+  color: #343434;
 }
 
 .dartbot-section-body {
@@ -158,6 +159,8 @@ html, body {
   left: 0%;
   width: 100%;
   text-align: center;
+
+  font-family: monospace;
 }
 
   #dartbot-menu a {
