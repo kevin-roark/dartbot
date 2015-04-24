@@ -22,6 +22,9 @@ $(function() {
   var processGallery = $('#process-gallery');
   addToGallery(processGallery, 'media/process/', 10, [2, 6]);
 
+  var manufacturingGallery = $('#manufacturing-gallery');
+  addToGallery(manufacturingGallery, 'media/manufacturing/', 2, [1]);
+
   var prototypeGallery = $('#prototype-gallery');
   addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
 
