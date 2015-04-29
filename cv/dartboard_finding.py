@@ -40,6 +40,7 @@ class BullseyeResult(object):
         self.center = center
         self.corner2 = corner2
         self.pos = real_world_position(center)
+        self.required_v = velocity_needed_for_z(self.pos[0][2])
         self.supplementary_image = supplementary_image
 
 class CircularBullseyeResult(BullseyeResult):
@@ -70,6 +71,7 @@ class BullseyeFinder(object):
             print 'match point:', bullseye_result.center
             print '3d match space:', bullseye_result.pos[0]
             print 'z_info:', bullseye_result.pos[1]
+            print 'required velocity:' + bullseye_result.required_v
 
         if self.test_point:  
             print 'test point / real world test loc:'
@@ -275,6 +277,13 @@ class BlobbyColorBasedFinder(ColorBasedFinder):
 def reset_kinect():
     freenect.sync_get_depth()
     freenect.sync_get_video()
+
+# assumes z dist in meters
+def velocity_needed_for_z(z_dist):
+    gravity_z = - 9.81 * z_dist
+    double_release_angle = 2 * (3.14 / 6) # TODO: update release angle
+    v = sqrt(gravity_z / sin(double_release_angle))
+    return v
 
 def real_world_position(screen_point):
     adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
