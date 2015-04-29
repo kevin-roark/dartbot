@@ -280,11 +280,18 @@ def real_world_position(screen_point):
     adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
     adjusted_screen_y = screen_point[1] - RGB_HEIGHT / 2 # center y should be 0
 
+    # TODO: determine if shohuld do (x, y) or (r, x)
     z_world_struct = get_z_world_depth()[screen_point[0]][screen_point[1]]
     z_world = z_world_struct[1]
 
-    x_world = z_world * adjusted_screen_x / FOCAL_LENGTH_X
-    y_world = z_world * adjusted_screen_y / FOCAL_LENGTH_Y
+    # focal method
+    #x_world = z_world * adjusted_screen_x / FOCAL_LENGTH_X
+    #y_world = z_world * adjusted_screen_y / FOCAL_LENGTH_Y
+
+    # emperical method
+    x_world = adjusted_screen_x * (z_world - 10) * .0021
+    y_world = adjusted_screen_y * (z_world - 10) * .0021
+
     pos = (x_world, y_world, z_world)
     return (pos, z_world_struct)
 
