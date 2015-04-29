@@ -1,12 +1,12 @@
 
 // pin configuration
-#define motor1Enable_pin 2 // enable - turn on to go home
-#define motor1Position_pin 4 // input a - low to go to position 1, high to go to position 2
-#define motor1Homing_pin 9 // input b - make HIGH to set home position
+#define motor1Enable_pin 2 // enable - turn on to go home -- green
+#define motor1Position_pin 4 // input a - low to go to position 1, high to go to position 2 -- white
+#define motor1Homing_pin 9 // input b - make HIGH to set home position -- purple
 
-#define motor2Enable_pin 3
-#define motor2Position_pin 5
-#define motor2Homing_pin 10
+#define motor2Enable_pin 3 // purple
+#define motor2Position_pin 5 // green
+#define motor2Homing_pin 10 // black
 
 /// API
 void setupMotorPins() {

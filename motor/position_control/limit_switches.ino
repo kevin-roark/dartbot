@@ -1,4 +1,10 @@
 
+// optical limit switch config:
+// anode (orange) should wire to a 250 ohm resistor, the other end of the resistor to a arduino output pin.
+// cathode (green) should wire to a arduino ground pin.
+// collector (white) should wire to pullup digital input.
+// emitter (blue) wires to arduino ground pin.
+
 /// Configuration
 #define motor1BacksideLimitSwitch_pin 12
 #define motor1NearsideLimitSwitch_pin 13
