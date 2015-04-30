@@ -6,10 +6,10 @@
 // emitter (blue) wires to arduino ground pin.
 
 /// Configuration
-#define proximalHomeOpticalLimitSwitch_pin 12
-#define proximalSafetyLimitSwitch_pin 13
+#define proximalHomePhysicalLimitSwitch_pin 12
+#define proximalSafetyPhysicalLimitSwitch_pin 13
 #define distalHomeOpticalLimitSwitch_pin 8
-#define distalSafetyLimitSwitch_pin 7
+#define distalSafetyOpticalLimitSwitch_pin 7
 
 /// State management
 bool setProximalHome = false;
@@ -17,39 +17,39 @@ bool setDistalHome = false;
 
 /// API
 void setupLimitSwitches() {
-  pinMode(proximalHomeOpticalLimitSwitch_pin, INPUT);
-  pinMode(distalHomeOpticalLimitSwitch_pin, INPUT);
+  pinMode(proximalHomePhysicalLimitSwitch_pin, INPUT_PULLUP);
+  pinMode(proximalSafetyPhysicalLimitSwitch_pin, INPUT_PULLUP);
 
-  pinMode(proximalSafetyLimitSwitch_pin, INPUT_PULLUP);
-  pinMode(distalSafetyLimitSwitch_pin, INPUT_PULLUP);
+  pinMode(distalHomeOpticalLimitSwitch_pin, INPUT);
+  pinMode(distalSafetyOpticalLimitSwitch_pin, INPUT);
 }
 
 void checkLimitSwitches() {
-  // proximal home switch
-  if (!setProximalHome && digitalRead(proximalHomeOpticalLimitSwitch_pin) == HIGH) {
+  // proximal home switch (physical)
+  if (!setProximalHome && digitalRead(proximalHomePhysicalLimitSwitch_pin) == LOW) {
     setMotorHome(1, true);
     Serial.println("proximal motor is home");
     setProximalHome = true;
   }
 
-  // distal home switch
+  // distal home switch (optical)
   if (!setDistalHome && digitalRead(distalHomeOpticalLimitSwitch_pin) == HIGH) {
     setMotorHome(2, true);
     Serial.println("distal motor is home");
     setDistalHome = true;
   }
 
-  // proximal safety switch
-  if (digitalRead(proximalSafetyLimitSwitch_pin) == LOW) {
+  // proximal safety switch (physical)
+  if (digitalRead(proximalSafetyPhysicalLimitSwitch_pin) == LOW) {
     setEnabled(false);
     Serial.print("SAFETY LIMIT SWITCH HIT: ");
-    Serial.println(proximalSafetyLimitSwitch_pin);
+    Serial.println(proximalSafetyPhysicalLimitSwitch_pin);
   }
 
-  // distal safety switch
-  if (digitalRead(distalSafetyLimitSwitch_pin) == LOW) {
+  // distal safety switch (optical)
+  if (digitalRead(distalSafetyOpticalLimitSwitch_pin) == HIGH) {
     setEnabled(false);
     Serial.print("SAFETY LIMIT SWITCH HIT: ");
-    Serial.println(distalSafetyLimitSwitch_pin);
+    Serial.println(distalSafetyOpticalLimitSwitch_pin);
   }
 }
