@@ -27,46 +27,29 @@ void setupLimitSwitches() {
 void checkLimitSwitches() {
   // proximal home switch
   if (!setProximalHome && digitalRead(proximalHomeOpticalLimitSwitch_pin) == HIGH) {
-    activateLimitPin(proximalHomeOpticalLimitSwitch_pin);
+    setMotorHome(1, true);
+    Serial.println("proximal motor is home");
     setProximalHome = true;
   }
 
   // distal home switch
   if (!setDistalHome && digitalRead(distalHomeOpticalLimitSwitch_pin) == HIGH) {
-    activateLimitPin(distalHomeOpticalLimitSwitch_pin);
+    setMotorHome(2, true);
+    Serial.println("distal motor is home");
     setDistalHome = true;
   }
 
-  // safety switches
+  // proximal safety switch
   if (digitalRead(proximalSafetyLimitSwitch_pin) == LOW) {
-    activateLimitPin(proximalSafetyLimitSwitch_pin);
+    setEnabled(false);
+    Serial.print("SAFETY LIMIT SWITCH HIT: ");
+    Serial.println(proximalSafetyLimitSwitch_pin);
   }
+
+  // distal safety switch
   if (digitalRead(distalSafetyLimitSwitch_pin) == LOW) {
-    activateLimitPin(distalSafetyLimitSwitch_pin);
+    setEnabled(false);
+    Serial.print("SAFETY LIMIT SWITCH HIT: ");
+    Serial.println(distalSafetyLimitSwitch_pin);
   }
-}
-
-void activateLimitPin(int pinNumber) {
-  Serial.print("limit switch pressed: ");
-  Serial.println(pinNumber);
-
-  switch (pinNumber) {
-    case proximalHomeOpticalLimitSwitch_pin:
-      setMotorHome(1, true);
-      break;
-
-    case distalHomeOpticalLimitSwitch_pin:
-      setMotorHome(2, true);
-      break;
-
-    case proximalSafetyLimitSwitch_pin:
-    case distalSafetyLimitSwitch_pin:
-      setEnabled(false);
-      break;
-
-    default:
-      break;
-  }
-
-  safetyLimitPinWaitingForDepress = pinNumber;
 }
