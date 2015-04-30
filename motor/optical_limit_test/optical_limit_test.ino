@@ -6,16 +6,12 @@
 // emitter (blue) wires to arduino ground pin.
 // helpful: https://arduino-info.wikispaces.com/Opto-Switch
 
-#define anodePin 2
 #define collectorPin 3
 
 void setup() {
   Serial.begin(9600);
   
-  pinMode(anodePin, OUTPUT);
-  pinMode(collectorPin, INPUT);
-  
-  digitalWrite(anodePin, HIGH);
+  pinMode(collectorPin, INPUT);  
 }
 
 void loop() {
