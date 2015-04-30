@@ -8,8 +8,8 @@
 /// Configuration
 #define proximalHomePhysicalLimitSwitch_pin 12
 #define proximalSafetyPhysicalLimitSwitch_pin 13
-#define distalHomeOpticalLimitSwitch_pin 8
-#define distalSafetyOpticalLimitSwitch_pin 7
+#define distalHomeOpticalLimitSwitch_pin 7
+#define distalSafetyOpticalLimitSwitch_pin 8
 
 /// State management
 bool setProximalHome = false;

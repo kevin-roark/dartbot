@@ -24,20 +24,6 @@ void serialEvent() {
       case '6':
         goToB();
         break;
-
-      // limit switch simulation
-      case '7':
-        activateLimitPin(12); // motor 1 backside
-        break;
-      case '8':
-        activateLimitPin(A1); // motor 2 backside
-        break;
-      case '9':
-        activateLimitPin(13); // motor 2 frontside, should disable both
-        break;
-      case '0':
-        deactivateLimitPin(); // depression of le pin
-        break;
     }
   }
 }

@@ -14,6 +14,7 @@ void setup() {
   setupMotorPins();
   setupLimitSwitches();
   setupElectromagnet();
+  setupStepper();
 
   printStartMessage();
 }
