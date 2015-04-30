@@ -8,6 +8,7 @@
 /// Configuration
 #define proximalHomePhysicalLimitSwitch_pin 12
 #define proximalSafetyPhysicalLimitSwitch_pin 13
+
 #define distalHomeOpticalLimitSwitch_pin 7
 #define distalSafetyOpticalLimitSwitch_pin 8
 
@@ -26,14 +27,14 @@ void setupLimitSwitches() {
 
 void checkLimitSwitches() {
   // proximal home switch (physical)
-  if (!setProximalHome && digitalRead(proximalHomePhysicalLimitSwitch_pin) == LOW) {
+  if (digitalRead(proximalHomePhysicalLimitSwitch_pin) == LOW) {
     setMotorHome(1, true);
     Serial.println("proximal motor is home");
     setProximalHome = true;
   }
-
+  
   // distal home switch (optical)
-  if (!setDistalHome && digitalRead(distalHomeOpticalLimitSwitch_pin) == HIGH) {
+  if (digitalRead(distalHomeOpticalLimitSwitch_pin) == HIGH) {
     setMotorHome(2, true);
     Serial.println("distal motor is home");
     setDistalHome = true;

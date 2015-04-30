@@ -14,8 +14,10 @@
 /// API
 
 void setupStepper() {
-  pinMode(dirPin, OUTPUT); 
-  pinMode(stepPin, OUTPUT); 
+  pinMode(dirPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  
+  digitalWrite(stepPin, LOW);
 } 
 
 void stepperRotate(int steps, float speed) { 
