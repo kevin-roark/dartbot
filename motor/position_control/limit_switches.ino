@@ -6,10 +6,10 @@
 // emitter (blue) wires to arduino ground pin.
 
 /// Configuration
-#define proximalHomePhysicalLimitSwitch_pin 12
-#define proximalSafetyPhysicalLimitSwitch_pin 13
+#define proximalHomePhysicalLimitSwitch_pin 13
+#define proximalSafetyPhysicalLimitSwitch_pin 12
 
-#define distalHomeOpticalLimitSwitch_pin 7
+#define distalHomeOpticalLimitSwitch_pin 9
 #define distalSafetyOpticalLimitSwitch_pin 8
 
 /// State management
@@ -32,7 +32,7 @@ void checkLimitSwitches() {
     Serial.println("proximal motor is home");
     setProximalHome = true;
   }
-  
+
   // distal home switch (optical)
   if (digitalRead(distalHomeOpticalLimitSwitch_pin) == HIGH) {
     setMotorHome(2, true);
