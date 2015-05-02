@@ -3,6 +3,7 @@ import cv2 as cv
 import frame_convert
 import freenect
 import numpy
+import serial
 import os, math, sys, time, random
 
 ########
@@ -336,6 +337,22 @@ def get_video():
     return frame_convert.video_cv(numpy_vid)
 
 ##########
+#### ARDUINO COMMUNICATION
+##########
+
+arduinoSerial = None
+
+def start_serial():
+    global arduinoSerial
+    arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600)
+
+def write_serial(text):
+    if not arduinoSerial:
+        return
+
+    arduinoSerial.write(text)
+
+##########
 #### SCRIPT BEHAVIOR
 ##########
 
@@ -364,12 +381,19 @@ def find_bullseye_with_confirmation(args):
 
     # TODO: report bullseye_pos to robot
 
+def serial_test(args):
+    start_serial()
+    write_serial('ok')
+    print 'yeah i did it'
+
+
 def main():
     reset_kinect()
 
     functions = {
         'template_test': template_matching_test,
-        'find': find_bullseye_with_confirmation
+        'find': find_bullseye_with_confirmation,
+        'serial': serial_test,
     }
 
     fn = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in functions else 'template_test'
