@@ -18,14 +18,10 @@ void setupMotorPins() {
   pinMode(motor2Enable_pin, OUTPUT);
   pinMode(motor2Position_pin, OUTPUT);
 
-  writeEnabledPins();
+  setEnabled(1, LOW);
+  setEnabled(2, LOW);
   writePositionPins(LOW);
   writeHomingPins(LOW);
-}
-
-void writeEnabledPins() {
-  digitalWrite(motor1Enable_pin, enabled? HIGH : LOW);
-  digitalWrite(motor2Enable_pin, enabled? HIGH : LOW);
 }
 
 void writePositionPins(int value) {
@@ -43,9 +39,26 @@ void setMotorPinHome(int motor, int value) {
   digitalWrite(pin, value);
 }
 
-void setEnabled(bool on) {
-  enabled = on;
-  Serial.print("SETTING ENABLED PINS ");
-  printPinState(enabled);
-  writeEnabledPins();
+void setEnabled(int motor, bool on) {
+  int pin = -1;
+
+  if (motor == 1) {
+    pin = motor1Enable_pin;
+    motor_1_enabled = on;
+    Serial.print("MOTOR 1 ");
+  }
+  else if (motor == 2) {
+    pin = motor2Enable_pin;
+    motor_2_enabled = on;
+    Serial.print("MOTOR 2 ");
+  }
+
+  if (pin < 0) {
+    return;
+  }
+
+  digitalWrite(pin, on);
+
+  Serial.print("SET ENABLED: ");
+  printPinState(on);
 }

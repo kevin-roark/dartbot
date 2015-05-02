@@ -3,18 +3,19 @@
 void serialEvent() {
   while (Serial.available()) {
     char inChar = (char) Serial.read();
+    Serial.println(inChar);
     switch (inChar) {
 
-      // enable control
+      // proximal enable control
       case '1':
       case '2':
-        setEnabled(inChar == '2');
+        setEnabled(1, inChar == '2');
         break;
 
-      // homing control
+      // distal enable control
       case '3':
       case '4':
-        //setHome(inChar == '4');
+        setEnabled(2, inChar == '4');
         break;
 
       // position control

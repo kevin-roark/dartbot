@@ -3,7 +3,8 @@
 #define TIME_BEFORE_RELEASE 700
 
 // state management
-bool enabled = false;
+bool motor_1_enabled = false;
+bool motor_2_enabled = false;
 bool motor_1_home = false;
 bool motor_2_home = false;
 unsigned long electromagnetReleaseTime = 0;
@@ -21,19 +22,23 @@ void setup() {
 
 void loop() {
   checkLimitSwitches();
-  
+
   if (electromagnetReleaseTime > 0 && millis() > electromagnetReleaseTime) {
     Serial.println("MAGNET");
     writeElectroMagnet(false);
-    electromagnetReleaseTime = 0; 
+    electromagnetReleaseTime = 0;
   }
 }
 
 void setMotorHome(int motor, bool on) {
-  if (!enabled) {
+  if (motor == 1 && !motor_1_enabled) {
     return;
   }
 
+  if (motor == 2 && !motor_2_enabled) {
+    return;
+  }
+  
   if (motor == 1) {
     motor_1_home = on;
     Serial.print("motor 1");
@@ -54,7 +59,7 @@ void goToA() {
 //  }
 
   Serial.println("sending motors home");
-  writePositionPins(LOW);  
+  writePositionPins(LOW);
 }
 
 void goToB() {
@@ -64,6 +69,6 @@ void goToB() {
 
   Serial.println("sending motors to destination");
   writePositionPins(HIGH);
-  
+
   electromagnetReleaseTime = millis() + TIME_BEFORE_RELEASE;
 }
