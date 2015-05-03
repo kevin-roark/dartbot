@@ -6,7 +6,7 @@
 // emitter (blue) wires to arduino ground pin.
 // helpful: https://arduino-info.wikispaces.com/Opto-Switch
 
-#define collectorPin 3
+#define collectorPin 7
 
 void setup() {
   Serial.begin(9600);
