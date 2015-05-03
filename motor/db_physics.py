@@ -74,10 +74,12 @@ def arm_info_for_target_z(z_dist):
     reduced_a2 = boosted_a2 * 5 + boosted_a1
     reduced_v2 = v2 * 5 + v1
 
-    print 'proximal accel (with boost): {}'.format(reduced_a1)
-    print 'distal accel (with boost): {}'.format(reduced_a2)
-    print 'proximal velocity: {}'.format(reduced_v1)
-    print 'distal velocity: {}'.format(reduced_v2)
+    print 'proximal:::'
+    print 'accel (with boost): {}'.format(reduced_a1)
+    print 'velocity: {}\n'.format(reduced_v1)
+    print 'distal:::'
+    print 'accel (with boost): {}'.format(reduced_a2)
+    print 'velocity: {}\n'.format(reduced_v2)
     print 'electromagnet release time: {}'.format(reduced_magnet_release)
 
 def main():
