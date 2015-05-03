@@ -9,10 +9,8 @@ initial_theta1 = 0.8727
 
 release_angle = pi / 6  # with respect to vertical
 
-release_theta2 = 5.0 * pi / 6
-
-d_theta1 = pi / 2
-d_theta2 = 0.698
+d_theta1 = 1.7148 # 98.25 degrees
+d_theta2 = 0.698 # 40 degrees
 
 # assumes z dist in meters
 def final_velocity_needed_for_z(z_dist):
