@@ -41,7 +41,9 @@ def distal_angular_velocity_with_accel(accel):
 
 def electromagnet_release_time(a1, omega1):
     f = 1.1
-    return ( (1 / f) * sqrt(2 * d_theta1 / a1) ) + ( ((1 - 1 / f) * d_theta1) / omega1 )
+    calc_time = ( (1 / f) * sqrt(2 * d_theta1 / a1) ) + ( ((1 - 1 / f) * d_theta1) / omega1 )
+    boosted_time = calc_time * 1.375
+    return boosted_time
     
 def rads_to_rpm(a):
     return a * 30 / pi
