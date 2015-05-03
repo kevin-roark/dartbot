@@ -3,11 +3,11 @@
 /// 
 /// 1140 encoder counts to get proximal from home (limit-switch defined) to 90 degrees
 /// 800 encoder counts per revolution. 0.45 degrees per count
-/// 1750 encoder counts for desired proximal end-position
-/// 1200 encoder counts for desired distal end-position (600 to get to throwing position)
+/// 1750 encoder counts for desired proximal end-position (873 to get to release position)
+/// 1200 encoder counts for desired distal end-position (685 to get to release position)
 
 // constants
-#define TIME_BEFORE_RELEASE 700
+float TIME_BEFORE_RELEASE = 961;
 
 // state management
 bool motor_1_enabled = false;
@@ -30,7 +30,7 @@ void setup() {
 void loop() {
   checkLimitSwitches();
 
-  if (electromagnetReleaseTime > 0 && millis() > electromagnetReleaseTime) {
+  if (electromagnetReleaseTime > 0 && millis() >= electromagnetReleaseTime) {
     Serial.println("MAGNET");
     writeElectroMagnet(false);
     electromagnetReleaseTime = 0;
