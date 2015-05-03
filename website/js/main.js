@@ -20,7 +20,7 @@ $(function() {
   var sections = [$about, $team, $process, $manufacturing, $cad, $prototype];
 
   var processGallery = $('#process-gallery');
-  addToGallery(processGallery, 'media/process/', 10, [2, 6]);
+  addToGallery(processGallery, 'media/process/', 11, [2, 6]);
 
   var manufacturingGallery = $('#manufacturing-gallery');
   addToGallery(manufacturingGallery, 'media/manufacturing/', 2, [1]);
