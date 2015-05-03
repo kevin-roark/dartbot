@@ -1,4 +1,11 @@
 
+/// notes
+/// 
+/// 1140 encoder counts to get proximal from home (limit-switch defined) to 90 degrees
+/// 800 encoder counts per revolution. 0.45 degrees per count
+/// 1750 encoder counts for desired proximal end-position
+/// 1200 encoder counts for desired distal end-position (600 to get to throwing position)
+
 // constants
 #define TIME_BEFORE_RELEASE 700
 
