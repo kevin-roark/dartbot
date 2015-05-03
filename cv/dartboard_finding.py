@@ -32,7 +32,7 @@ MATCHING_METHODS = [
 BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 128), (255, 255, 255) ) # forgiving red
 
 #########
-#### COMPUTER VISION CLASSES
+#### COMPUTER VISION RESULT CLASSES
 #########
 
 class BullseyeResult(object):
@@ -40,15 +40,33 @@ class BullseyeResult(object):
         self.corner1 = corner1
         self.center = center
         self.corner2 = corner2
-        self.pos = real_world_position(center)
-        self.required_v = velocity_needed_for_z(self.pos[0][2])
         self.supplementary_image = supplementary_image
+
+        self.has_performed_vision = False
+
+    def perform_vision_calculations(self):
+        print 'performing vision calculations ...'
+        self.pos = real_world_position(self.center)
+        #self.required_v = velocity_needed_for_z(self.pos[0][2])
+        self.has_performed_vision = True
+
+    def report(self):
+        if not self.has_performed_vision:
+            self.perform_vision_calculations()
+
+        print 'match point:', self.center
+        print '3d match space:', self.pos[0]
+        print 'z_info:', self.pos[1]
 
 class CircularBullseyeResult(BullseyeResult):
     def __init__(self, center, radius, supplementary_image=None):
         corner1 = (center[0] - radius, center[1] - radius)
-        corner2 = (center[0] + radius, center[1] + radius) 
+        corner2 = (center[0] + radius, center[1] + radius)
         super(CircularBullseyeResult, self).__init__(corner1, center, corner2, supplementary_image)
+
+#########
+#### COMPUTER VISION FINDER CLASSES
+#########
 
 class BullseyeFinder(object):
     def __init__(self, draw=False, test_point=None):
@@ -56,37 +74,34 @@ class BullseyeFinder(object):
         self.test_point = test_point
 
     def run(self):
-        rgb_image = get_video() # grab image from kinect
-        self.result = self.find_bullseye(rgb_image)
+        print 'grabbing kinect rgb frame...'
+        self.rgb_image = get_video() # grab image from kinect
 
-        rgb_mat = numpy.asarray(rgb_image[:,:]) # make it numpy style
-        self.report_bullseye(self.result, rgb_mat)
+        print 'converting to numpy ...'
+        self.rgb_mat = numpy.asarray(self.rgb_image[:,:]) # make it numpy style
+
+        print 'performing analysis ...'
+        self.result = self.find_bullseye(self.rgb_image)
+
+        self.draw_bullseye(self.rgb_mat)
+
+    def report(self):
+        self.report_bullseye(self.result)
 
     def find_bullseye(self, rgb_image):
-        return None # help me out here 
+        return None # help me out here
 
-    def report_bullseye(self, bullseye_result, display_image):
-        if bullseye_result is None:
-            print 'failed to find bullseye!!!!'
-        else:
-            print 'match point:', bullseye_result.center
-            print '3d match space:', bullseye_result.pos[0]
-            print 'z_info:', bullseye_result.pos[1]
-            print 'required velocity:' + bullseye_result.required_v
-
-        if self.test_point:  
-            print 'test point / real world test loc:'
-            print self.test_point
-            print real_world_position(self.test_point)
-
-            if draw:
-                cv.circle(display_image, self.test_point, 8, (255, 255, 0), 2, 8, 0)
+    def draw_bullseye(self, display_image):
+        bullseye_result = self.result
 
         if self.draw:
+            if self.test_point:
+                cv.circle(display_image, self.test_point, 8, (255, 255, 0), 2, 8, 0)
+
             if bullseye_result is not None:
                 cv.circle(display_image, bullseye_result.center, 10, (0, 0, 255), 2, 4, 0)
                 cv.rectangle(display_image, bullseye_result.corner1, bullseye_result.corner2, 0, 2, 8, 0)
- 
+
             # display results in window
             self.window_number = str(random.randint(0, 1000))
             kinect_window = 'kinect image ' + self.window_number
@@ -97,6 +112,17 @@ class BullseyeFinder(object):
                 supplementary_window = 'supplementary image ' + self.window_number
                 cv.namedWindow(supplementary_window, cv.WINDOW_AUTOSIZE)
                 cv.imshow(supplementary_window, bullseye_result.supplementary_image)
+
+    def report_bullseye(self, bullseye_result):
+        if bullseye_result is None:
+            print 'failed to find bullseye!!!!'
+        else:
+            bullseye_result.report()
+
+        if self.test_point:
+            print 'test point / real world test loc:'
+            print self.test_point
+            print real_world_position(self.test_point)
 
 
 class TemplateMatcher(BullseyeFinder):
@@ -136,7 +162,7 @@ class TemplateMatcher(BullseyeFinder):
             return 'normalized correlation coefficient'
         else:
             return 'UNKNOWN MATCHING_METHOD'
-    
+
     @staticmethod
     def match_method_prefers_min(match_method):
         return (match_method == cv.TM_SQDIFF or match_method == cv.TM_SQDIFF_NORMED)
@@ -168,31 +194,41 @@ class ColorBasedFinder(BullseyeFinder):
 
 # inspired by http://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
 class CircularColorBasedFinder(ColorBasedFinder):
-    def __init__(self, draw=False, test_point=None, color_boundaries=BULLSEYE_COLOR_BOUNDARIES, dp=1.2, min_dist=100):
+    def __init__(self, draw=False,
+                       test_point=None,
+                       color_boundaries=BULLSEYE_COLOR_BOUNDARIES,
+                       dp=1.2,
+                       min_dist=100,
+                       continue_after_success=False,
+                       draw_supplementary=False):
         super(CircularColorBasedFinder, self).__init__(draw, test_point, color_boundaries)
         self.dp = dp
         self.min_dist = min_dist
+        self.draw_supplementary = draw_supplementary
+        self.continue_after_success = continue_after_success
 
     # override !
     def find_bullseye(self, rgb_image):
         # convert kinect rbg image to numpy matrix
-        rgb_mat = numpy.asarray(rgb_image[:,:])
+        rgb_mat = self.rgb_mat
 
         # copy kinect rgb image for drawing
-        drawing_image = rgb_mat.copy()
+        drawing_image = None if not self.draw else rgb_mat.copy()
 
         # convert to grayscale
         gray_image = cv.cvtColor(rgb_mat, cv.COLOR_BGR2GRAY)
 
         # detect circles in the image
+        print 'detecting circles ...'
         circles = cv.HoughCircles(gray_image, cv.cv.CV_HOUGH_GRADIENT, self.dp, self.min_dist)
 
         # here we will store what we think the bullseye is
         bullseye_circle = None
 
-        cv.circle(drawing_image, (400, 150), 6, (0, 0, 0), 4)
-        print rgb_mat.shape
-        print rgb_mat[150, 400]
+        # this was for testing (x,y) vs (y,x)
+        # cv.circle(drawing_image, (400, 150), 6, (0, 0, 0), 4)
+        #print rgb_mat.shape
+        #print rgb_mat[150, 400]
 
         # ensure at least some circles were found
         if circles is not None:
@@ -207,8 +243,10 @@ class CircularColorBasedFinder(ColorBasedFinder):
                     if self.pixel_fits_bullseye_profile(rgb_mat[y, x]):
                         print 'circular success!'
                         bullseye_circle = (x, y, r)
+                        if not self.continue_after_success:
+                            break
 
-                if self.draw:
+                if self.draw and self.draw_supplementary:
                     # draw the circle in the output image, then draw a rectangle
                     # corresponding to the center of the circle
                     cv.circle(drawing_image, (x, y), r, (0, 255, 0), 4)
@@ -217,12 +255,14 @@ class CircularColorBasedFinder(ColorBasedFinder):
 
                 count += 1
 
+        supp_img = drawing_image if (self.draw and self.draw_supplementary) else None
+
         if bullseye_circle:
             center = (bullseye_circle[0], bullseye_circle[1])
             radius = bullseye_circle[2]
-            return CircularBullseyeResult(center, radius, drawing_image)
+            return CircularBullseyeResult(center, radius, supp_img)
         else:
-            return CircularBullseyeResult((0, 0), 1, drawing_image)
+            return CircularBullseyeResult((0, 0), 1, supp_img)
 
     def pixel_fits_bullseye_profile(self, pixel):
         b, g, r = pixel
@@ -276,6 +316,7 @@ class BlobbyColorBasedFinder(ColorBasedFinder):
 ########
 
 def reset_kinect():
+    print 'cleaning up the kinect ...'
     freenect.sync_get_depth()
     freenect.sync_get_video()
 
@@ -344,9 +385,14 @@ arduinoSerial = None
 
 def start_serial():
     global arduinoSerial
-    arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600)
+    try:
+        arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600)
+    except OSError as e:
+        print 'failed to start serial: {}'.format(e)
 
 def write_serial(text):
+    global arduinoSerial
+
     if not arduinoSerial:
         return
 
@@ -360,31 +406,66 @@ def template_matching_test(args):
     methods = len(MATCHING_METHODS)
     for i in range(methods):
         print '**** test run ', i, ' ****'
-        method = MATCHING_METHODS[i] 
+        method = MATCHING_METHODS[i]
         matcher = TemplateMatcher(matching_method=method)
         matcher.run()
+        matcher.report()
         print ''
-
-def find_bullseye_with_confirmation(args):
-    bullseye_pos = None
-
-    while not bullseye_pos:
-        finder = CircularColorBasedFinder(draw=True)
-        finder.run()
-
-        user_confirmation = input('Does the reported bullseye position look good? ')
-        if user_confirmation == 'lgtm':
-            bullseye_pos = finder.result.center
-            print 'sick!!!!!'
-        else:
-            cv.destroyAllWindows()
-
-    # TODO: report bullseye_pos to robot
 
 def serial_test(args):
     start_serial()
     write_serial('ok')
     print 'yeah i did it'
+
+def find_bullseye_with_confirmation(args):
+    bullseye_pos = None
+
+    while not bullseye_pos:
+        finder = CircularColorBasedFinder(draw=True, draw_supplementary=True, continue_after_success=True)
+        finder.run()
+        finder.report()
+
+        user_confirmation = input('Does the reported bullseye position look good? ')
+        if user_confirmation == 1:
+            bullseye_pos = finder.result.center
+            print 'sick!!!!!'
+        else:
+            cv.destroyAllWindows()
+
+def find_centered_bullseye_with_confirmation(args):
+    start_serial()
+
+    target_x = RGB_WIDTH / 2
+    target_y = RGB_HEIGHT / 2 # for now this is not used ... lets focus on x
+    target_buffer = 20
+
+    target_finder = None
+    at_target = False
+
+    while not at_target:
+        finder = CircularColorBasedFinder(draw=True, draw_supplementary=False, continue_after_success=False)
+        finder.run()
+
+        pos = finder.result.center
+        dist_from_target = (pos[0] - target_x)
+        print 'distance in x from center is {}'.format(dist_from_target)
+        if abs(dist_from_target) <= target_buffer:
+            print 'we like that!\n'
+            at_target = True
+            target_finder = finder
+        else:
+            print 'we dont like that ...'
+
+            print 'lets turn the motor a bit...'
+            serial_command = 'l' if dist_from_target < 0 else 'r'
+            write_serial(serial_command)
+            time.sleep(0.25)
+            print 'stopping the motor ...'
+            write_serial('s')
+
+            cv.destroyAllWindows()
+
+    target_finder.report()
 
 
 def main():
@@ -392,8 +473,9 @@ def main():
 
     functions = {
         'template_test': template_matching_test,
-        'find': find_bullseye_with_confirmation,
         'serial': serial_test,
+        'find': find_bullseye_with_confirmation,
+        'search': find_centered_bullseye_with_confirmation
     }
 
     fn = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in functions else 'template_test'
@@ -406,4 +488,3 @@ if __name__ == '__main__':
     while 1:
         if cv.waitKey(10) == 27:
             break
-
