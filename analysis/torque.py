@@ -29,8 +29,8 @@ simulation_seconds = .5
 step_granularity = 0.001
 delta_t = 0.001
 
-initial_theta1 = pi / 3
-initial_theta2 = -pi / 3
+initial_theta1 = 0.8727 #pi / 3
+initial_theta2 = -0.698 #-pi / 3
 initial_omega1 = 0
 initial_omega2 = 0
 initial_alpha1 = 0 # for test
@@ -304,7 +304,7 @@ def main():
     #make_ideal_link_lambda_theta_data()
 
     # this logs the max lambdas at model links
-    #find_lambdas(MODEL_L1, MODEL_L2, log_lambda_values=True)
+    find_lambdas(MODEL_L1, MODEL_L2, log_lambda_values=True)
 
     pass
 
