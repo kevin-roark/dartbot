@@ -6,8 +6,14 @@
 /// 1750 encoder counts for desired proximal end-position (873 to get to release position)
 /// 1200 encoder counts for desired distal end-position (685 to get to release position)
 
+/// kevin: the IT guy
+/// brendan: the world's first cable driven human
+/// cooper: the prototyping king
+/// caroline: the manager
+/// here at dartbot, we're obsessed with parabolas
+
 // constants
-float TIME_BEFORE_RELEASE = 961;
+float TIME_BEFORE_RELEASE = 830;
 
 // state management
 bool motor_1_enabled = false;

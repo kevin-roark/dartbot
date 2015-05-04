@@ -17,7 +17,7 @@ void setupStepper() {
   pinMode(dirPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
 
-  stopStepper();
+  digitalWrite(stepPin, LOW);
 }
 
 void moveStepperLeft() {

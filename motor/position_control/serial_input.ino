@@ -29,7 +29,7 @@ void serialEvent() {
       // electromagnet control
       case '7':
       case '8':
-        writeElectroMagnet(inChar == '7');
+        writeElectroMagnet(inChar == '8');
         break;
 
       /// stepper control
