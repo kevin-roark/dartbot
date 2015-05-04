@@ -199,6 +199,7 @@ class CircularColorBasedFinder(ColorBasedFinder):
                        color_boundaries=BULLSEYE_COLOR_BOUNDARIES,
                        dp=1.2,
                        min_dist=100,
+                       max_circles=4,
                        continue_after_success=False,
                        draw_supplementary=False):
         super(CircularColorBasedFinder, self).__init__(draw, test_point, color_boundaries)
@@ -234,6 +235,7 @@ class CircularColorBasedFinder(ColorBasedFinder):
         if circles is not None:
             # convert the (x, y) coordinates and radius of the circles to integers
             circles = numpy.round(circles[0, :]).astype("int")
+            circles = circles[:4]
 
             # loop over the (x, y) coordinates and radius of the circles
             count = 0
@@ -446,6 +448,11 @@ def find_centered_bullseye_with_confirmation(args):
         finder = CircularColorBasedFinder(draw=True, draw_supplementary=False, continue_after_success=False)
         finder.run()
 
+        if not finder.result:
+            print 'could not find the dartbot ... '
+            print 'abort!!!'
+            at_target = True
+
         pos = finder.result.center
         dist_from_target = (pos[0] - target_x)
         print 'distance in x from center is {}'.format(dist_from_target)
@@ -464,7 +471,8 @@ def find_centered_bullseye_with_confirmation(args):
 
             cv.destroyAllWindows()
 
-    target_finder.report()
+    if target_finder:
+        target_finder.report()
 
 
 def main():
