@@ -459,9 +459,8 @@ def find_centered_bullseye_with_confirmation(args):
             print 'lets turn the motor a bit...'
             serial_command = 'l' if dist_from_target < 0 else 'r'
             write_serial(serial_command)
-            time.sleep(0.25)
-            print 'stopping the motor ...'
-            write_serial('s')
+            print 'waiting for the motor ...'
+            time.sleep(1.5)
 
             cv.destroyAllWindows()
 
