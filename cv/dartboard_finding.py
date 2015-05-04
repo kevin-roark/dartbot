@@ -331,8 +331,8 @@ def real_world_position(screen_point):
     adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
     adjusted_screen_y = screen_point[1] - RGB_HEIGHT / 2 # center y should be 0
 
-    # TODO: determine if shohuld do (x, y) or (r, x)
-    z_world_struct = get_z_world_depth()[screen_point[0]][screen_point[1]]
+    # it is (Y, X) style ya dummy
+    z_world_struct = get_z_world_depth()[screen_point[1]][screen_point[0]]
     z_world = z_world_struct[1]
 
     # focal method
