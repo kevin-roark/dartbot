@@ -389,6 +389,7 @@ def start_serial():
     global arduinoSerial
     try:
         arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600)
+        print 'ok serial is connected good'
     except OSError as e:
         print 'failed to start serial: {}'.format(e)
 
@@ -467,7 +468,7 @@ def find_centered_bullseye_with_confirmation(args):
             serial_command = 'l' if dist_from_target < 0 else 'r'
             write_serial(serial_command)
             print 'waiting for the motor ...'
-            time.sleep(1.5)
+            time.sleep(1.3)
 
             cv.destroyAllWindows()
 
