@@ -1,6 +1,6 @@
 
 /// notes
-/// 
+///
 /// 1140 encoder counts to get proximal from home (limit-switch defined) to 90 degrees
 /// 800 encoder counts per revolution. 0.45 degrees per count
 /// 1750 encoder counts for desired proximal end-position (873 to get to release position)
@@ -45,7 +45,7 @@ void setMotorHome(int motor, bool on) {
   if (motor == 2 && !motor_2_enabled) {
     return;
   }
-  
+
   if (motor == 1) {
     motor_1_home = on;
     Serial.print("motor 1");
@@ -58,6 +58,10 @@ void setMotorHome(int motor, bool on) {
   printPinState(on);
 
   setMotorPinHome(motor, on? HIGH : LOW);
+
+  if (motor_1_home && motor_2_home) {
+    writeElectroMagnet(true);
+  }
 }
 
 void goToA() {

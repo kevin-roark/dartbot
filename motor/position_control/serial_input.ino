@@ -25,6 +25,20 @@ void serialEvent() {
       case '6':
         goToB();
         break;
+
+      // electromagnet control
+      case '7':
+      case '8':
+        writeElectroMagnet(inChar == '7');
+        break;
+
+      /// stepper control
+      case 'l':
+        moveStepperLeft();
+        break;
+      case 'r':
+        moveStepperRight();
+        break;
     }
   }
 }

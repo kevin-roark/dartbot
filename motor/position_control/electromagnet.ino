@@ -5,7 +5,7 @@
 /// API
 void setupElectromagnet() {
   pinMode(electromagnet_pin, OUTPUT);
-  writeElectroMagnet(true);
+  writeElectroMagnet(false);
 }
 
 void writeElectroMagnet(bool on) {

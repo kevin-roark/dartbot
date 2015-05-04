@@ -17,7 +17,15 @@ void setupStepper() {
   pinMode(dirPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
 
-  digitalWrite(stepPin, LOW);
+  stopStepper();
+}
+
+void moveStepperLeft() {
+  stepperRotateDeg(-2, 0.1);
+}
+
+void moveStepperRight() {
+  stepperRotateDeg(2, 0.1);
 }
 
 void stepperRotate(int steps, float speed) {
