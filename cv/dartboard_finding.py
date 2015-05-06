@@ -32,7 +32,7 @@ MATCHING_METHODS = [
 
 BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 128), (255, 255, 255) ) # forgiving red
 
-KINECT_RELEASE_Z_OFFSET = 0 # distance from kinect to where the dart is released
+KINECT_RELEASE_Z_OFFSET = 0.3616 # distance (m) from kinect to where the dart is released
 
 #########
 #### COMPUTER VISION RESULT CLASSES
