@@ -5,6 +5,7 @@ import freenect
 import numpy
 import serial
 import os, math, sys, time, random
+import db_physics
 
 ########
 ### CONSTANTS
@@ -54,9 +55,9 @@ class BullseyeResult(object):
         if not self.has_performed_vision:
             self.perform_vision_calculations()
 
-        print 'match point:', self.center
+        #print 'match point:', self.center
         print '3d match space:', self.pos[0]
-        print 'z_info:', self.pos[1]
+        #print 'z_info:', self.pos[1]
 
 class CircularBullseyeResult(BullseyeResult):
     def __init__(self, center, radius, supplementary_image=None):
@@ -474,6 +475,10 @@ def find_centered_bullseye_with_confirmation(args):
 
     if target_finder:
         target_finder.report()
+
+        print '\nmotor control parameters:'
+        z = target_finder.result.pos[0][2]
+        db_physics.arm_info_for_target_z(z)
 
 
 def main():
