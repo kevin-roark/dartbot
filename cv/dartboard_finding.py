@@ -377,6 +377,19 @@ def get_video():
     numpy_vid = freenect.sync_get_video()[0]
     return frame_convert.video_cv(numpy_vid)
 
+def z_gain_for_target_z(z_dist):
+    #y = -9.7428x6 + 103.21x5 - 448.41x4 + 1021.7x3 - 1286.3x2 + 847.51x - 226.85
+
+    gain = -9.7428 * (z_dist ** 6) + \
+            103.21 * (z_dist ** 5) - \
+            448.41 * (z_dist ** 4) + \
+            1021.7 * (z_dist ** 3) - \
+            1286.3 * (z_dist ** 2) + \
+            847.51 * (z_dist) - \
+            226.85
+
+    return gain
+
 ##########
 #### ARDUINO COMMUNICATION
 ##########
@@ -477,8 +490,12 @@ def find_centered_bullseye_with_confirmation(args):
 
         true_z = measured_z + KINECT_RELEASE_Z_OFFSET # add the release offset (smart idea)
 
+        gain = z_gain_for_target_z(true_z)
+        print '...gaining by {}\n'.format(gain)
+        motor_gained_z = gain * true_z
+
         print '\nmotor control parameters:'
-        db_physics.arm_info_for_target_z(true_z) # print relevant info for motor controllers
+        db_physics.arm_info_for_target_z(motor_gained_z) # print relevant info for motor controllers
 
 
 def main():

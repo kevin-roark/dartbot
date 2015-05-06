@@ -60,25 +60,8 @@ def rads_to_rpm(a):
 def boost_accel(a):
     return a * 1.1
 
-def z_gain_for_target_z(z_dist):
-    #y = -9.7428x6 + 103.21x5 - 448.41x4 + 1021.7x3 - 1286.3x2 + 847.51x - 226.85
-
-    gain = -9.7428 * (z_dist ** 6) + \
-            103.21 * (z_dist ** 5) - \
-            448.41 * (z_dist ** 4) + \
-            1021.7 * (z_dist ** 3) - \
-            1286.3 * (z_dist ** 2) + \
-            847.51 * (z_dist) - \
-            226.85
-
-    return gain
-
 def arm_info_for_target_z(z_dist, height=0.0):
-    gain = z_gain_for_target_z(z_dist)
-    print '...gaining given z by {}\n'.format(gain)
-    gained_z_dist = gain * z_dist
-
-    final_v = final_velocity_needed_for_z(gained_z_dist, height)
+    final_v = final_velocity_needed_for_z(z_dist, height)
 
     angular_a1 = proximal_accel_with_final_v(final_v)
     angular_a2 = distal_accel_with_proximal_accel(angular_a1)
