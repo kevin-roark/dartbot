@@ -32,6 +32,9 @@ MATCHING_METHODS = [
 
 BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 128), (255, 255, 255) ) # forgiving red
 
+KINECT_RELEASE_Z_OFFSET = 0 # distance from kinect to where the dart is released
+KINECT_DARTBOARD_HEIGHT_DIFF = 0 # y distance from kinect to bullseye
+
 #########
 #### COMPUTER VISION RESULT CLASSES
 #########
@@ -440,7 +443,7 @@ def find_centered_bullseye_with_confirmation(args):
     start_serial()
 
     target_x = RGB_WIDTH / 2
-    target_y = RGB_HEIGHT / 2 # for now this is not used ... lets focus on x
+    target_y = RGB_HEIGHT / 2 # for now this is not used ...
     target_buffer = 15
 
     target_finder = None
@@ -476,9 +479,14 @@ def find_centered_bullseye_with_confirmation(args):
     if target_finder:
         target_finder.report()
 
+        measured_z = target_finder.result.pos[0][2]
+
+        horizontal_z = sqrt(measured_z * measured_z - KINECT_DARTBOARD_HEIGHT_DIFF * KINECT_DARTBOARD_HEIGHT_DIFF) # account for pythagorus (smart guy)
+
+        true_z = horizontal_z + KINECT_RELEASE_Z_OFFSET # add the release offset (smart idea)
+
         print '\nmotor control parameters:'
-        z = target_finder.result.pos[0][2]
-        db_physics.arm_info_for_target_z(z)
+        db_physics.arm_info_for_target_z(true_z) # print relevant info for motor controllers
 
 
 def main():
