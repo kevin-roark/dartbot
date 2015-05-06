@@ -21,11 +21,11 @@ void setupStepper() {
 }
 
 void moveStepperLeft() {
-  stepperRotateDeg(-2, 0.01);
+  stepperRotateDeg(-1.5, 0.01);
 }
 
 void moveStepperRight() {
-  stepperRotateDeg(2, 0.01);
+  stepperRotateDeg(1.5, 0.01);
 }
 
 void stepperRotate(int steps, float speed) {
