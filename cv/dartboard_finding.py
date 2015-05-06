@@ -441,7 +441,7 @@ def find_centered_bullseye_with_confirmation(args):
 
     target_x = RGB_WIDTH / 2
     target_y = RGB_HEIGHT / 2 # for now this is not used ... lets focus on x
-    target_buffer = 20
+    target_buffer = 15
 
     target_finder = None
     at_target = False
