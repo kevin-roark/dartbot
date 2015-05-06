@@ -33,7 +33,6 @@ MATCHING_METHODS = [
 BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 128), (255, 255, 255) ) # forgiving red
 
 KINECT_RELEASE_Z_OFFSET = 0 # distance from kinect to where the dart is released
-KINECT_DARTBOARD_HEIGHT_DIFF = 0 # y distance from kinect to bullseye
 
 #########
 #### COMPUTER VISION RESULT CLASSES
@@ -51,7 +50,6 @@ class BullseyeResult(object):
     def perform_vision_calculations(self):
         print 'performing vision calculations ...'
         self.pos = real_world_position(self.center)
-        #self.required_v = velocity_needed_for_z(self.pos[0][2])
         self.has_performed_vision = True
 
     def report(self):
@@ -261,9 +259,12 @@ class CircularColorBasedFinder(ColorBasedFinder):
 
                 count += 1
 
+            if bullseye_circle is None and len(circles) > 0:
+                bullseye_circle = circles[0] # fallback in case we have circles but color detection is meh
+
         supp_img = drawing_image if (self.draw and self.draw_supplementary) else None
 
-        if bullseye_circle:
+        if bullseye_circle is not None:
             center = (bullseye_circle[0], bullseye_circle[1])
             radius = bullseye_circle[2]
             return CircularBullseyeResult(center, radius, supp_img)
@@ -325,13 +326,6 @@ def reset_kinect():
     print 'cleaning up the kinect ...'
     freenect.sync_get_depth()
     freenect.sync_get_video()
-
-# assumes z dist in meters
-def velocity_needed_for_z(z_dist):
-    gravity_z = - 9.81 * z_dist
-    double_release_angle = 2 * (3.14 / 6) # TODO: update release angle
-    v = sqrt(gravity_z / sin(double_release_angle))
-    return v
 
 def real_world_position(screen_point):
     adjusted_screen_x = screen_point[0] - RGB_WIDTH / 2 # center x should be 0
@@ -481,9 +475,7 @@ def find_centered_bullseye_with_confirmation(args):
 
         measured_z = target_finder.result.pos[0][2]
 
-        horizontal_z = sqrt(measured_z * measured_z - KINECT_DARTBOARD_HEIGHT_DIFF * KINECT_DARTBOARD_HEIGHT_DIFF) # account for pythagorus (smart guy)
-
-        true_z = horizontal_z + KINECT_RELEASE_Z_OFFSET # add the release offset (smart idea)
+        true_z = measured_z + KINECT_RELEASE_Z_OFFSET # add the release offset (smart idea)
 
         print '\nmotor control parameters:'
         db_physics.arm_info_for_target_z(true_z) # print relevant info for motor controllers
