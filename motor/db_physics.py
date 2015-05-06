@@ -4,6 +4,7 @@ from math import sin, cos, pi, sqrt
 
 l1 = 0.1925 # proximal length
 l2 = 0.3025 # distal length
+g = 9.81
 
 initial_theta1 = 0.8727
 
@@ -13,10 +14,18 @@ d_theta1 = 1.7148 # 98.25 degrees
 d_theta2 = 0.698 # 40 degrees
 
 # assumes z dist in meters
-def final_velocity_needed_for_z(z_dist):
-    gravity_z = 9.81 * z_dist
-    double_release_angle = 2 * release_angle
-    v = sqrt(gravity_z / sin(double_release_angle))
+def final_velocity_needed_for_z(z_dist, yZero):
+    gravity_z = g * z_dist
+    cos_release_angle = cos(release_angle)
+
+    numerator = gravity_z * gravity_z
+
+    denominator = (cos_release_angle * cos_release_angle) * \
+                  (2 * gravity_z * sin(release_angle) / cos_release_angle + \
+                   2 * g * yZero)
+
+    v = sqrt(numerator / denominator)
+
     return v
 
 def proximal_accel_with_final_v(v):
@@ -42,17 +51,18 @@ def distal_angular_velocity_with_accel(accel):
 def electromagnet_release_time(a1, omega1):
     f = 1.1
     calc_time = ( (1 / f) * sqrt(2 * d_theta1 / a1) ) + ( ((1 - 1 / f) * d_theta1) / omega1 )
-    boosted_time = calc_time * 1.375
+    boosted_time = calc_time * 1.36
     return boosted_time
-    
+
 def rads_to_rpm(a):
     return a * 30 / pi
 
 def boost_accel(a):
     return a * 1.1
 
-def arm_info_for_target_z(z_dist):
-    final_v = final_velocity_needed_for_z(z_dist)
+def arm_info_for_target_z(z_dist, height=0.0):
+    final_v = final_velocity_needed_for_z(z_dist, height)
+
     angular_a1 = proximal_accel_with_final_v(final_v)
     angular_a2 = distal_accel_with_proximal_accel(angular_a1)
     angular_v1 = proximal_angular_velocity_with_accel(angular_a1)
@@ -89,10 +99,10 @@ def main():
         return
 
     z = float(args[0])
-    arm_info_for_target_z(z)
+    height = float(args[1]) if len(args) > 1 else 0.0
+
+    arm_info_for_target_z(z, height)
 
 
 if __name__ == '__main__':
     main()
-
-
