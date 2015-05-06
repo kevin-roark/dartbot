@@ -61,13 +61,15 @@ def boost_accel(a):
     return a * 1.1
 
 def z_gain_for_target_z(z_dist):
-    gain = -5.6282 * (z_dist ** 6) + \
-            58.343 * (z_dist ** 5) - \
-            247.35 * (z_dist ** 4) + \
-            548.08 * (z_dist ** 3) - \
-            668.23 * (z_dist ** 2) + \
-            424.19 * (z_dist) - \
-            108.02
+    #y = -9.7428x6 + 103.21x5 - 448.41x4 + 1021.7x3 - 1286.3x2 + 847.51x - 226.85
+
+    gain = -9.7428 * (z_dist ** 6) + \
+            103.21 * (z_dist ** 5) - \
+            448.41 * (z_dist ** 4) + \
+            1021.7 * (z_dist ** 3) - \
+            1286.3 * (z_dist ** 2) + \
+            847.51 * (z_dist) - \
+            226.85
 
     return gain
 
