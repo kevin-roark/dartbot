@@ -30,7 +30,7 @@ MATCHING_METHODS = [
     cv.TM_CCOEFF_NORMED
 ]
 
-BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 128), (255, 255, 255) ) # forgiving red
+BULLSEYE_COLOR_BOUNDARIES = ( (0, 0, 100), (255, 255, 255) ) # forgiving red
 
 KINECT_RELEASE_Z_OFFSET = 0.3616 # distance (m) from kinect to where the dart is released
 
@@ -388,7 +388,7 @@ def z_gain_for_target_z(z_dist):
             847.51 * (z_dist) - \
             226.85
 
-    return gain
+    return max(1, gain)
 
 ##########
 #### ARDUINO COMMUNICATION
@@ -448,6 +448,11 @@ def serial_test(args):
 
     print 'siiiick'
 
+def gain_test(args):
+    z = float(args[0])
+    gain = z_gain_for_target_z(z)
+    print 'gain for {} is {}'.format(z, gain)
+
 def find_bullseye_with_confirmation(args):
     bullseye_pos = None
 
@@ -482,6 +487,10 @@ def find_centered_bullseye_with_confirmation(args):
             print 'abort!!!'
             at_target = True
 
+        is_db = input('Is this the bullseye? ')
+        if is_db == 0:
+            continue
+
         pos = finder.result.center
         dist_from_target = (pos[0] - target_x)
         print 'distance in x from center is {}'.format(dist_from_target)
@@ -500,7 +509,7 @@ def find_centered_bullseye_with_confirmation(args):
 
 
             print 'waiting for the motor ...'
-            time.sleep(1.0)
+            time.sleep(0.64)
 
             cv.destroyAllWindows()
 
@@ -520,11 +529,10 @@ def find_centered_bullseye_with_confirmation(args):
 
 
 def main():
-    reset_kinect()
-
     functions = {
         'template_test': template_matching_test,
         'serial': serial_test,
+        'gain': gain_test,
         'find': find_bullseye_with_confirmation,
         'search': find_centered_bullseye_with_confirmation
     }
@@ -533,6 +541,9 @@ def main():
     if fn is None:
         print 'nah'
         return
+
+    if fn != 'gain' and fn != 'serial':
+        reset_kinect()
 
     functions[fn](sys.argv[2:])
 
