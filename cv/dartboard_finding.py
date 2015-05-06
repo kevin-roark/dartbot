@@ -399,10 +399,16 @@ arduinoSerial = None
 def start_serial():
     global arduinoSerial
     try:
-        arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600)
+        arduinoSerial = serial.Serial('/dev/tty.usbmodem1421', 9600, timeout=1)
         print 'ok serial is connected good'
     except OSError as e:
         print 'failed to start serial: {}'.format(e)
+
+def read_and_print_serial():
+    global arduinoSerial
+    lines = arduinoSerial.readlines()
+    for l in lines:
+        print l
 
 def write_serial(text):
     global arduinoSerial
@@ -428,8 +434,19 @@ def template_matching_test(args):
 
 def serial_test(args):
     start_serial()
-    write_serial('ok')
-    print 'yeah i did it'
+    read_and_print_serial()
+    time.sleep(1)
+
+    write_serial('ls')
+    read_and_print_serial()
+    write_serial('rs')
+    read_and_print_serial()
+    write_serial('lb')
+    read_and_print_serial()
+    write_serial('rb')
+    read_and_print_serial()
+
+    print 'siiiick'
 
 def find_bullseye_with_confirmation(args):
     bullseye_pos = None
@@ -476,10 +493,14 @@ def find_centered_bullseye_with_confirmation(args):
             print 'we dont like that ...'
 
             print 'lets turn the motor a bit...'
-            serial_command = 'l' if dist_from_target < 0 else 'r'
+            serial_dir = 'l' if dist_from_target < 0 else 'r'
+            serial_type = 's' if abs(dist_from_target) < 40 else 'b'
+            serial_command = serial_dir + serial_type
             write_serial(serial_command)
+
+
             print 'waiting for the motor ...'
-            time.sleep(1.3)
+            time.sleep(1.0)
 
             cv.destroyAllWindows()
 
@@ -508,7 +529,10 @@ def main():
         'search': find_centered_bullseye_with_confirmation
     }
 
-    fn = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in functions else 'template_test'
+    fn = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in functions else None
+    if fn is None:
+        print 'nah'
+        return
 
     functions[fn](sys.argv[2:])
 

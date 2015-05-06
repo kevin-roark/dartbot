@@ -1,4 +1,7 @@
 
+char stepperDir = '0';
+char stepperType = '0';
+
 /// SerialEvent called whenever key is pressed, essentially. Runs between loop() calls
 void serialEvent() {
   while (Serial.available()) {
@@ -34,10 +37,17 @@ void serialEvent() {
 
       /// stepper control
       case 'l':
-        moveStepperLeft();
-        break;
       case 'r':
-        moveStepperRight();
+        stepperDir = inChar;
+        break;
+      case 's':
+      case 'b':
+        if (stepperDir == '0') {
+          return;
+        }
+        stepperType = inChar;
+        moveStepper(stepperDir, stepperType);
+        stepperDir = '0';
         break;
     }
   }

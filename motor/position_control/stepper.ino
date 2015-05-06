@@ -20,12 +20,26 @@ void setupStepper() {
   digitalWrite(stepPin, LOW);  
 }
 
-void moveStepperLeft() {
-  stepperRotateDeg(-1.5, 0.01);
+void moveStepper(char dir, char mode) {
+  float deg = mode == 'b' ? 2.0 : 1.0;
+  if (dir == 'l') {
+    //Serial.print("left ");
+    //Serial.println(deg);
+    moveStepperLeft(deg);
+  }
+  else {
+    //Serial.print("right ");
+    moveStepperRight(deg);
+  }
+  //Serial.println(deg);
 }
 
-void moveStepperRight() {
-  stepperRotateDeg(1.5, 0.01);
+void moveStepperLeft(float deg) {
+  stepperRotateDeg(-abs(deg), 0.01);
+}
+
+void moveStepperRight(float deg) {
+  stepperRotateDeg(abs(deg), 0.01);
 }
 
 void stepperRotate(int steps, float speed) {
