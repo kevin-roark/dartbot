@@ -21,10 +21,9 @@ void setupStepper() {
 }
 
 void moveStepper(char dir, char mode) {
-  float deg = mode == 'b' ? 2.0 : 1.0;
+  float deg = mode == 'b' ? 2.0 : 0.7;
   if (dir == 'l') {
     //Serial.print("left ");
-    //Serial.println(deg);
     moveStepperLeft(deg);
   }
   else {

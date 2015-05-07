@@ -13,7 +13,7 @@
 /// here at dartbot, we're obsessed with parabolas
 
 // constants
-float TIME_BEFORE_RELEASE = 569;
+float TIME_BEFORE_RELEASE = 567;
 
 // state management
 bool motor_1_enabled = false;

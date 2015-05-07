@@ -76,10 +76,8 @@ class BullseyeFinder(object):
         self.test_point = test_point
 
     def run(self):
-        print 'grabbing kinect rgb frame...'
         self.rgb_image = get_video() # grab image from kinect
 
-        print 'converting to numpy ...'
         self.rgb_mat = numpy.asarray(self.rgb_image[:,:]) # make it numpy style
 
         print 'performing analysis ...'
@@ -242,10 +240,10 @@ class CircularColorBasedFinder(ColorBasedFinder):
             # loop over the (x, y) coordinates and radius of the circles
             count = 0
             for (x, y, r) in circles:
-                print 'circle number', count, 'alert:', x, y, r
+                #print 'circle number', count, 'alert:', x, y, r
                 if not bullseye_circle:
                     if self.pixel_fits_bullseye_profile(rgb_mat[y, x]):
-                        print 'circular success!'
+                        #print 'circular success!'
                         bullseye_circle = (x, y, r)
                         if not self.continue_after_success:
                             break
@@ -378,15 +376,31 @@ def get_video():
     return frame_convert.video_cv(numpy_vid)
 
 def z_gain_for_target_z(z_dist):
-    #y = -9.7428x6 + 103.21x5 - 448.41x4 + 1021.7x3 - 1286.3x2 + 847.51x - 226.85
+    # 2.35 -> 1.14
+    # 2.218 -> 1.15
+    # 2.107 -> 1.16
+    # 1.956 -> 1.17
+    # 1.893 -> 1.16
+    # 1.804 -> 1.16
+    # 1.650 -> 1.15
+    distances = [1.65, 1.804, 1.893, 1.956, 2.107, 2.116, 2.218, 2.35]
+    gains = [1.15, 1.16, 1.16, 1.17, 1.165, 1.175, 1.15, 1.14]
 
-    gain = -9.7428 * (z_dist ** 6) + \
-            103.21 * (z_dist ** 5) - \
-            448.41 * (z_dist ** 4) + \
-            1021.7 * (z_dist ** 3) - \
-            1286.3 * (z_dist ** 2) + \
-            847.51 * (z_dist) - \
-            226.85
+    if z_dist <= distances[0]:
+      return gains[0]
+    elif z_dist > distances[-1]:
+      return gains[-1]
+
+    gain = 1.15
+    for index in range(len(distances)):
+      distance = distances[index]
+      next_distance = distances[index + 1]
+      if z_dist > distance and z_dist <= next_distance:
+        gain1 = gains[index]
+        gain2 = gains[index + 1]
+        percent = (next_distance - z_dist) / (next_distance - distance)
+        gain = percent * (gain2 - gain1) + gain1
+        break
 
     return max(1, gain)
 
@@ -473,7 +487,7 @@ def find_centered_bullseye_with_confirmation(args):
 
     target_x = RGB_WIDTH / 2
     target_y = RGB_HEIGHT / 2 # for now this is not used ...
-    target_buffer = 15
+    target_buffer = 3
 
     target_finder = None
     at_target = False
@@ -496,21 +510,17 @@ def find_centered_bullseye_with_confirmation(args):
         dist_from_target = (pos[0] - target_x)
         print 'distance in x from center is {}'.format(dist_from_target)
         if abs(dist_from_target) <= target_buffer:
-            print 'we like that!\n'
             at_target = True
             target_finder = finder
         else:
-            print 'we dont like that ...'
-
             print 'lets turn the motor a bit...'
             serial_dir = 'l' if dist_from_target < 0 else 'r'
             serial_type = 's' if abs(dist_from_target) < 40 else 'b'
             serial_command = serial_dir + serial_type
             write_serial(serial_command)
 
-
-            print 'waiting for the motor ...'
-            time.sleep(0.64)
+            # wait for motor
+            time.sleep(0.8)
 
             cv.destroyAllWindows()
 
