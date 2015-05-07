@@ -9,6 +9,7 @@ $(function() {
   var $headerVideo = $(headerVideo);
   var dartbotManufacturingVideo1 = document.querySelector('#dartbot-manufacturing-video-1');
   var dartbotPrototypeVideo1 = document.querySelector('#dartbot-prototype-video-1');
+  var dartbotPrototypeVideo2 = document.querySelector('#dartbot-prototype-video-2');
   var aboutDartbotVideo1 = document.querySelector('#about-dartbot-video-1');
 
   var $about = $('#about-dartbot');
@@ -23,7 +24,7 @@ $(function() {
   addToGallery(processGallery, 'media/process/', 11, [2, 6]);
 
   var manufacturingGallery = $('#manufacturing-gallery');
-  addToGallery(manufacturingGallery, 'media/manufacturing/', 2, [1]);
+  addToGallery(manufacturingGallery, 'media/manufacturing/', 6, [1, 5]);
 
   var prototypeGallery = $('#prototype-gallery');
   addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
@@ -62,6 +63,7 @@ $(function() {
 
     'dartbot-prototype': function(active) {
       activateVideo(active, dartbotPrototypeVideo1);
+      activateVideo(active, dartbotPrototypeVideo2);
     },
   };
 
