@@ -23,8 +23,10 @@ void serialEvent() {
 
       // position control
       case '5':
-        goToA();
+        goToA(1);
         break;
+      case '9':
+        goToA(2);
       case '6':
         goToB();
         break;

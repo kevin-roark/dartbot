@@ -13,7 +13,7 @@
 /// here at dartbot, we're obsessed with parabolas
 
 // constants
-float TIME_BEFORE_RELEASE = 567;
+float TIME_BEFORE_RELEASE = 569;
 
 // state management
 bool motor_1_enabled = false;
@@ -70,19 +70,22 @@ void setMotorHome(int motor, bool on) {
   }
 }
 
-void goToA() {
-//  if (!motor_1_home || !motor_2_home) {
-//    return;
-//  }
+void goToA(int motor) {
+  if (motor == 1 && !motor_1_home) {
+    return; 
+  }
+  if (motor == 2 && !motor_2_home) {
+    return; 
+  }
 
   Serial.println("sending motors home");
-  writePositionPins(LOW);
+  writePositionPin(motor, LOW);
 }
 
 void goToB() {
-//  if (!motor_1_home || !motor_2_home) {
-//    return;
-//  }
+  if (!motor_1_home || !motor_2_home) {
+    return;
+  }
 
   Serial.println("sending motors to destination");
   writePositionPins(HIGH);

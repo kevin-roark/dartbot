@@ -489,6 +489,7 @@ def find_centered_bullseye_with_confirmation(args):
 
         is_db = input('Is this the bullseye? ')
         if is_db == 0:
+            cv.destroyAllWindows()
             continue
 
         pos = finder.result.center
@@ -519,6 +520,7 @@ def find_centered_bullseye_with_confirmation(args):
         measured_z = target_finder.result.pos[0][2]
 
         true_z = measured_z + KINECT_RELEASE_Z_OFFSET # add the release offset (smart idea)
+        print 'true z is {}'.format(true_z)
 
         gain = z_gain_for_target_z(true_z)
         print '...gaining by {}\n'.format(gain)

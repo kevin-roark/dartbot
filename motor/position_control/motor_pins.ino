@@ -24,6 +24,11 @@ void setupMotorPins() {
   writeHomingPins(LOW);
 }
 
+void writePositionPin(int motor, int value) {
+  int pin = motor == 1 ? motor1Position_pin : motor2Position_pin;
+  digitalWrite(pin, value);
+}
+
 void writePositionPins(int value) {
   digitalWrite(motor1Position_pin, value);
   digitalWrite(motor2Position_pin, value);
