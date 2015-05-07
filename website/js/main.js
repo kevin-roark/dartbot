@@ -28,6 +28,9 @@ $(function() {
   var prototypeGallery = $('#prototype-gallery');
   addToGallery(prototypeGallery, 'media/prototype/', 4, [2]);
 
+  var cadGallery = $('#cad-gallery');
+  addToGallery(cadGallery, 'media/cad/', 6, []);
+
   swathSections();
 
   var lastSeekTime = new Date();
