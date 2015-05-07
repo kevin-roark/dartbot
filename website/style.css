@@ -140,6 +140,17 @@ html, body {
     box-shadow: 10px 10px 30px 7px #313131;
   }
 
+/* LOGO */
+
+.logo-image {
+  text-align: center;
+}
+
+.logo-image img {
+  max-width: 90%;
+  box-shadow: 10px 10px 30px 7px #313131;
+}
+
 /* MENU */
 
 #dartbot-menu {
