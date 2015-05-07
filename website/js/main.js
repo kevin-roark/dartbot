@@ -77,6 +77,25 @@ $(function() {
     setColorForSection(elementID);
   });
 
+  var animationDuration = 180000;
+  setTimeout(scrollDown, 1000);
+
+  function scrollDown() {
+    $('body').animate({
+      scrollTop: $('.footer').offset().top
+    }, animationDuration, 'linear', function() {
+      scrollUp();
+    });
+  }
+
+  function scrollUp() {
+    $('body').animate({
+      scrollTop: $('#about-dartbot').offset().top
+    }, animationDuration, 'linear', function() {
+      scrollDown();
+    });
+  }
+
   function updateActiveSection() {
     var bottomElement = mostVisibleElement(sections);
     if (!bottomElement) {
